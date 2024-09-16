@@ -5,6 +5,10 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import Spinner from "../../../utils/Spinner";
 import { studentSignIn } from "../../../redux/actions/studentActions";
+import { GoogleLogin } from "@react-oauth/google"; // Import GoogleLogin
+import jwt_decode from "jwt-decode"; 
+import { toast } from "react-toastify";
+
 
 const StudentLogin = () => {
   const [translate, setTranslate] = useState(false);
@@ -36,6 +40,25 @@ const StudentLogin = () => {
     );
   };
 
+  const handleGoogleLogin = async (response) => {
+    if (response.credential) {
+      try {
+        const userData = jwt_decode(response.credential);
+        const formData = {
+          email: userData.email,
+          name: userData.name,
+          avatar: userData.picture || null, // Use the picture URL or null if not available
+        };
+        localStorage.setItem("user", JSON.stringify({ result: formData })); // Store user data with the correct structure
+        navigate("/student/home"); // Navigate after successful login
+      } catch (error) {
+        console.error("Error during Google login:", error);
+        toast.error("Google Login failed!");
+      }
+    } else {
+      console.error("No credential found in Google response");
+    }
+  };
   useEffect(() => {
     if (store.errors) {
       setLoading(false);
@@ -120,6 +143,21 @@ const StudentLogin = () => {
               {error.usernameError || error.passwordError}
             </p>
           )}
+           {/* Google Sign-In Button */}
+           <GoogleLogin
+  onSuccess={handleGoogleLogin}
+  onFailure={(error) => {
+    console.error("Login Failed:", error);
+    toast.error("Google Login failed!"); // Show an error message
+  }}
+  style={{
+    marginTop: "1rem",
+    width: "100%",
+  }}
+  logo_alignment="left" // Optional: adjust as necessary
+  text="Sign in with Google" // Add custom text if needed
+/>
+
         </form>
       </div>
     </div>
