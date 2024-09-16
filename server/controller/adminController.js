@@ -7,7 +7,9 @@ import Notice from "../models/notice.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 
-export const adminLogin = async (req, res) => {
+
+export const adminLogin =
+  async (req, res) => {
   const { username, password } = req.body;
   const errors = { usernameError: String, passwordError: String };
   try {
@@ -52,7 +54,11 @@ export const updatedPassword = async (req, res) => {
 
     const admin = await Admin.findOne({ email });
     let hashedPassword;
-    hashedPassword = await bcrypt.hash(newPassword, 10);
+    try {
+      hashedPassword = await bcrypt.hash(newPassword, 10);
+    } catch (hashError) {
+      return res.status(500).json({ message: "Error hashing the password" });
+    }
     admin.password = hashedPassword;
     await admin.save();
     if (admin.passwordUpdated === false) {
@@ -132,7 +138,11 @@ export const addAdmin = async (req, res) => {
     let hashedPassword;
     const newDob = dob.split("-").reverse().join("-");
 
-    hashedPassword = await bcrypt.hash(newDob, 10);
+    try {
+      hashedPassword = await bcrypt.hash(newDob, 10);
+    } catch (hashError) {
+      return res.status(500).json({ message: "Error hashing the password" });
+    }
     var passwordUpdated = false;
     const newAdmin = await new Admin({
       name,
@@ -164,7 +174,9 @@ export const addDummyAdmin = async () => {
   const name = "dummy";
   const username = "ADMDUMMY";
   let hashedPassword;
-  hashedPassword = await bcrypt.hash(password, 10);
+
+    hashedPassword = await bcrypt.hash(password, 10);
+ 
   var passwordUpdated = true;
 
   const dummyAdmin = await Admin.findOne({ email });
@@ -287,7 +299,11 @@ export const addFaculty = async (req, res) => {
     let hashedPassword;
     const newDob = dob.split("-").reverse().join("-");
 
-    hashedPassword = await bcrypt.hash(newDob, 10);
+    try {
+      hashedPassword = await bcrypt.hash(newDob, 10);
+    } catch (hashError) {
+      return res.status(500).json({ message: "Error hashing the password" });
+    }
     var passwordUpdated = false;
 
     const newFaculty = await new Faculty({
@@ -549,7 +565,11 @@ export const addStudent = async (req, res) => {
     let hashedPassword;
     const newDob = dob.split("-").reverse().join("-");
 
-    hashedPassword = await bcrypt.hash(newDob, 10);
+    try {
+      hashedPassword = await bcrypt.hash(newDob, 10);
+    } catch (hashError) {
+      return res.status(500).json({ message: "Error hashing the password" });
+    }
     var passwordUpdated = false;
 
     const newStudent = await new Student({
