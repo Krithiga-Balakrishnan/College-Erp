@@ -14,12 +14,10 @@ const studentSchema = new Schema({
     type: String,
   },
   password: {
-    type: String,
-    required: true,
+    type: String
   },
   year: {
-    type: Number,
-    required: true,
+    type: Number
   },
   subjects: [
     {
@@ -40,12 +38,10 @@ const studentSchema = new Schema({
     type: String,
   },
   department: {
-    type: String,
-    required: true,
+    type: String
   },
   section: {
-    type: String,
-    required: true,
+    type: String
   },
   batch: {
     type: String,
@@ -57,8 +53,7 @@ const studentSchema = new Schema({
     type: Number,
   },
   dob: {
-    type: String,
-    required: true,
+    type: String
   },
   passwordUpdated: {
     type: Boolean,

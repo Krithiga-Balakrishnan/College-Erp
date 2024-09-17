@@ -14,16 +14,16 @@ const Body = () => {
   const [open, setOpen] = useState(false);
   const [openNotice, setOpenNotice] = useState({});
   const notices = useSelector((state) => state.admin.notices.result);
-  const testResult = useSelector((state) => state.student.testResult.result);
-  const attendance = useSelector((state) => state.student.attendance.result);
+  const testResult = useSelector((state) => state.student.testResult?.result || []);
+  const attendance = useSelector((state) => state.student.attendance?.result || []);
+  const [value, onChange] = useState(new Date());
   const user = JSON.parse(localStorage.getItem("user"));
-  const subjects = useSelector((state) => state.admin.subjects.result);
+  const subjects = useSelector((state) => state.admin.subjects?.result || []);
   var totalAttendance = 0;
   console.log(attendance);
 
   attendance?.map((att) => (totalAttendance += att.attended));
-
-  const [value, onChange] = useState(new Date());
+  const year = user?.result?.year || "Not set"; // Empty if not available
 
   return (
     <div className="flex-[0.8] mt-3">
@@ -71,7 +71,7 @@ const Body = () => {
               />
               <div className="flex flex-col">
                 <h1>Year</h1>
-                <h2 className="text-2xl font-bold">{user.result.year}</h2>
+                <h2 className="text-2xl font-bold">{year}</h2> {/* No year initially */}
               </div>
             </div>
           </div>
