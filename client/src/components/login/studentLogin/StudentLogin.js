@@ -40,20 +40,38 @@ const StudentLogin = () => {
     );
   };
 
+  // const handleGoogleLogin = async (response) => {
+  //   if (response.credential) {
+  //     try {
+  //       const userData = jwt_decode(response.credential);
+  //       const formData = {
+  //         email: userData.email,
+  //         name: userData.name,
+  //         avatar: userData.picture || null, // Use the picture URL or null if not available
+  //       };
+  //       localStorage.setItem("user", JSON.stringify({ result: formData })); // Store user data with the correct structure
+  //       navigate("/student/home"); // Navigate after successful login
+  //     } catch (error) {
+  //       console.error("Error during Google login:", error);
+  //       toast.error("Google Login failed!");
+  //     }
+  //   } else {
+  //     console.error("No credential found in Google response");
+  //   }
+  // };
   const handleGoogleLogin = async (response) => {
     if (response.credential) {
       try {
-        const userData = jwt_decode(response.credential);
         const formData = {
-          email: userData.email,
-          name: userData.name,
-          avatar: userData.picture || null, // Use the picture URL or null if not available
+          googleCredential: response.credential,  // Send the credential (JWT) directly to the backend
         };
-        localStorage.setItem("user", JSON.stringify({ result: formData })); // Store user data with the correct structure
-        navigate("/student/home"); // Navigate after successful login
+        // Store Google credential in local storage if necessary
+        localStorage.setItem("user", JSON.stringify({ result: formData }));
+        // Dispatch to the backend for login
+        await dispatch(studentSignIn(formData, navigate));
       } catch (error) {
-        console.error("Error during Google login:", error);
-        toast.error("Google Login failed!");
+        console.error("Error during Google login:", error); // Log error details
+        toast.error("Google Login failed: " + (error.response?.data?.message || error.message));
       }
     } else {
       console.error("No credential found in Google response");
