@@ -16,7 +16,8 @@ export const studentSignIn = (formData, navigate) => async (dispatch) => {
     if (data.result.passwordUpdated) navigate("/student/home");
     else navigate("/student/password");
   } catch (error) {
-    dispatch({ type: SET_ERRORS, payload: error.response.data });
+    console.error("Error during student sign-in:", error.response?.data || error.message); // Log error
+    dispatch({ type: SET_ERRORS, payload: error.response?.data || { message: "Authentication failed" } });
   }
 };
 
