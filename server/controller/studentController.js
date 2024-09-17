@@ -144,8 +144,14 @@ export const updatedPassword = async (req, res) => {
     }
 
     const student = await Student.findOne({ email });
+    
     let hashedPassword;
-    hashedPassword = await bcrypt.hash(newPassword, 10);
+    try {
+      hashedPassword = await bcrypt.hash(newPassword, 10);
+    } catch (hashError) {
+      return res.status(500).json({ message: "Error hashing the password" });
+    }
+    
     student.password = hashedPassword;
     await student.save();
     if (student.passwordUpdated === false) {
