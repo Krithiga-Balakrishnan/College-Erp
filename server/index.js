@@ -10,9 +10,18 @@ import facultyRoutes from "./routes/facultyRoutes.js";
 import { addDummyAdmin } from "./controller/adminController.js";
 const app = express();
 dotenv.config();
+
 app.use(bodyParser.json({ limit: "30mb", extended: true }));
 app.use(bodyParser.urlencoded({ limit: "30mb", extended: true }));
-app.use(cors());
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || origin.startsWith('http://localhost:3000')) {
+      callback(null, true); // Allow the request if the origin is 'localhost:3000' or its subdomains
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  }
+}));
 
 app.use("/api/admin", adminRoutes);
 app.use("/api/faculty", facultyRoutes);
