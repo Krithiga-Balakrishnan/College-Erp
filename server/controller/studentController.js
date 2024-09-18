@@ -46,7 +46,7 @@ const client = new OAuth2Client(process.env.GOOGLE_OAUTH_CLIENT_ID); // Make sur
 
 export const studentLogin = async (req, res) => {
   const { googleCredential, username, password } = req.body;
-  
+
   try {
     if (googleCredential) {
       // Verify the Google credential
@@ -60,49 +60,49 @@ export const studentLogin = async (req, res) => {
 
       // Fetch or create student in the database
       let existingStudent = await Student.findOne({ email });
-      
+
       if (!existingStudent) {
         const existingDepartment = await Department.findOne({ department: 'General' });
-    let departmentHelper = existingDepartment ? existingDepartment.departmentCode : '000';
-    const currentYear = new Date().getFullYear();
+        let departmentHelper = existingDepartment ? existingDepartment.departmentCode : '000';
+        const currentYear = new Date().getFullYear();
 
-    // Generate username
-    const lastStudent = await Student.findOne({ department: 'General' }).sort({ _id: -1 });
-    const lastIdNumber = lastStudent ? parseInt(lastStudent.username.slice(-3)) : 0;
-    const newIdNumber = lastIdNumber + 1;
-    const helper = String(newIdNumber).padStart(3, '0'); // Helper for padding
-    const newUsername = `STU${currentYear}${departmentHelper}${helper}`;
+        // Generate username
+        const lastStudent = await Student.findOne({ department: 'General' }).sort({ _id: -1 });
+        const lastIdNumber = lastStudent ? parseInt(lastStudent.username.slice(-3)) : 0;
+        const newIdNumber = lastIdNumber + 1;
+        const helper = String(newIdNumber).padStart(3, '0'); // Helper for padding
+        const newUsername = `STU${currentYear}${departmentHelper}${helper}`;
 
-    // Create a new student with default required fields
-    const defaultData = {
-        email,
-        name,
-        avatar: picture || null,
-        dob: '2000-01-01',
-        section: 'A',
-        department: 'General',
-        year: 1,
-        username: newUsername,
-        password: await bcrypt.hash('default_password', 10), // Hash the default password
-        passwordUpdated: false // Set it to false for first-time user
-    };
+        // Create a new student with default required fields
+        const defaultData = {
+          email,
+          name,
+          avatar: picture || null,
+          dob: '2000-01-01',
+          section: 'A',
+          department: 'General',
+          year: 1,
+          username: newUsername,
+          password: await bcrypt.hash('default_password', 10), // Hash the default password
+          passwordUpdated: false // Set it to false for first-time user
+        };
 
-    // Create the new student
-    existingStudent = await Student.create(defaultData); // Assign created student to existingStudent
-}
+        // Create the new student
+        existingStudent = await Student.create(defaultData); // Assign created student to existingStudent
+      }
 
-// Generate a JWT token for the session
-const token = jwt.sign(
-    { email: existingStudent.email, id: existingStudent._id },
-    process.env.JWT_SECRET,
-    { expiresIn: '1h' }
-);
+      // Generate a JWT token for the session
+      const token = jwt.sign(
+        { email: existingStudent.email, id: existingStudent._id },
+        process.env.JWT_SECRET,
+        { expiresIn: '1h' }
+      );
 
-return res.status(200).json({ result: existingStudent, token });
+      return res.status(200).json({ result: existingStudent, token });
 
     } else if (username && password) {
       const errors = { usernameError: null, passwordError: null };
-      
+
       const existingStudent = await Student.findOne({ username });
       if (!existingStudent) {
         errors.usernameError = "Student doesn't exist.";
@@ -144,14 +144,14 @@ export const updatedPassword = async (req, res) => {
     }
 
     const student = await Student.findOne({ email });
-    
+
     let hashedPassword;
     try {
       hashedPassword = await bcrypt.hash(newPassword, 10);
     } catch (hashError) {
       return res.status(500).json({ message: "Error hashing the password" });
     }
-    
+
     student.password = hashedPassword;
     await student.save();
     if (student.passwordUpdated === false) {

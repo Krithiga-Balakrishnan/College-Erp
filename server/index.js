@@ -13,15 +13,37 @@ dotenv.config();
 
 app.use(bodyParser.json({ limit: "30mb", extended: true }));
 app.use(bodyParser.urlencoded({ limit: "30mb", extended: true }));
-app.use(cors({
+
+// CORS configuration for allowing localhost:3000 and its subdomains
+const corsOptions = {
   origin: function (origin, callback) {
-    if (!origin || origin.startsWith('http://localhost:3000')) {
-      callback(null, true); // Allow the request if the origin is 'localhost:3000' or its subdomains
+    // Allow requests from localhost:3000 or any of its subdomains
+    if (!origin || origin === 'http://localhost:3000' || origin.endsWith('.localhost:3000')) {
+      callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'));
+      // Reject the request
+      callback(new Error('Not allowed by CORS')); 
     }
+  },
+  // Specify allowed methods
+  methods: ['GET', 'POST', 'PUT', 'DELETE'], 
+  // Specify allowed headers
+  allowedHeaders: ['Content-Type', 'Authorization'], 
+  // Allow cookies and credentials to be sent
+  credentials: true, 
+};
+
+// Apply the CORS middleware with the options
+app.use(cors(corsOptions));
+
+// Handling CORS errors globally
+app.use((err, req, res, next) => {
+  if (err instanceof Error && err.message === 'Not allowed by CORS') {
+    res.status(403).json({ message: 'CORS policy does not allow access from this origin.' });
+  } else {
+    next(err); // Pass on any other errors
   }
-}));
+});
 
 app.use("/api/admin", adminRoutes);
 app.use("/api/faculty", facultyRoutes);

@@ -77,6 +77,7 @@ const StudentLogin = () => {
       console.error("No credential found in Google response");
     }
   };
+  
   useEffect(() => {
     if (store.errors) {
       setLoading(false);
