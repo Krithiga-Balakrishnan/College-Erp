@@ -1,4 +1,3 @@
-import student from "../models/student.js";
 import Test from "../models/test.js";
 import Student from "../models/student.js";
 import Department from '../models/department.js'; // Adjust the import path as necessary
@@ -8,6 +7,7 @@ import Attendence from "../models/attendance.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { OAuth2Client } from 'google-auth-library'; // Import Google's OAuth2 client
+import csrfProtection from "../middleware/csrfMiddleware.js";
 
 const client = new OAuth2Client(process.env.GOOGLE_OAUTH_CLIENT_ID); // Make sure to set GOOGLE_CLIENT_ID in your .env file
 
@@ -63,42 +63,46 @@ export const studentLogin = async (req, res) => {
       
       if (!existingStudent) {
         const existingDepartment = await Department.findOne({ department: 'General' });
-    let departmentHelper = existingDepartment ? existingDepartment.departmentCode : '000';
-    const currentYear = new Date().getFullYear();
+        let departmentHelper = existingDepartment ? existingDepartment.departmentCode : '000';
+        const currentYear = new Date().getFullYear();
 
-    // Generate username
-    const lastStudent = await Student.findOne({ department: 'General' }).sort({ _id: -1 });
-    const lastIdNumber = lastStudent ? parseInt(lastStudent.username.slice(-3)) : 0;
-    const newIdNumber = lastIdNumber + 1;
-    const helper = String(newIdNumber).padStart(3, '0'); // Helper for padding
-    const newUsername = `STU${currentYear}${departmentHelper}${helper}`;
+        // Generate username
+        const lastStudent = await Student.findOne({ department: 'General' }).sort({ _id: -1 });
+        const lastIdNumber = lastStudent ? parseInt(lastStudent.username.slice(-3)) : 0;
+        const newIdNumber = lastIdNumber + 1;
+        const helper = String(newIdNumber).padStart(3, '0'); // Helper for padding
+        const newUsername = `STU${currentYear}${departmentHelper}${helper}`;
 
-    // Create a new student with default required fields
-    const defaultData = {
-        email,
-        name,
-        avatar: picture || null,
-        dob: '2000-01-01',
-        section: 'A',
-        department: 'General',
-        year: 1,
-        username: newUsername,
-        password: await bcrypt.hash('default_password', 10), // Hash the default password
-        passwordUpdated: false // Set it to false for first-time user
-    };
+        // Create a new student with default required fields
+        const defaultData = {
+          email,
+          name,
+          avatar: picture || null,
+          dob: '2000-01-01',
+          section: 'A',
+          department: 'General',
+          year: 1,
+          username: newUsername,
+          password: await bcrypt.hash('default_password', 10), // Hash the default password
+          passwordUpdated: false // Set it to false for first-time user
+        };
 
-    // Create the new student
-    existingStudent = await Student.create(defaultData); // Assign created student to existingStudent
-}
+        // Create the new student
+        existingStudent = await Student.create(defaultData); // Assign created student to existingStudent
+      }
+      // Generate a CSRF token for the session
+      const csrfToken = req.csrfToken();
+      console.log('Generated CSRF Token:', csrfToken); // Log the generated toke
 
-// Generate a JWT token for the session
-const token = jwt.sign(
-    { email: existingStudent.email, id: existingStudent._id },
-    process.env.JWT_SECRET,
-    { expiresIn: '1h' }
-);
+      // Generate a JWT token for the session
+      const token = jwt.sign(
+        { email: existingStudent.email, id: existingStudent._id },
+        process.env.JWT_SECRET,
+        { expiresIn: '1h' }
+      );
 
-return res.status(200).json({ result: existingStudent, token });
+      console.log('Generated JWT:', token);
+      return res.status(200).json({ result: existingStudent, token, csrfToken });
 
     } else if (username && password) {
       const errors = { usernameError: null, passwordError: null };
@@ -114,6 +118,9 @@ return res.status(200).json({ result: existingStudent, token });
         errors.passwordError = "Invalid Credentials";
         return res.status(401).json(errors); // Changed status to 401 for invalid credentials
       }
+      // Generate a CSRF token for the session
+      const csrfToken = req.csrfToken();
+      //console.log('Generated CSRF Token:', csrfToken); // Log the generated token
 
       // Generate JWT token for traditional login
       const token = jwt.sign(
@@ -121,8 +128,9 @@ return res.status(200).json({ result: existingStudent, token });
         process.env.JWT_SECRET, // Use the environment variable for JWT secret
         { expiresIn: '1h' }
       );
+      console.log('Generated JWT:', token);
 
-      return res.status(200).json({ result: existingStudent, token });
+      return res.status(200).json({ result: existingStudent, token, csrfToken });
     } else {
       return res.status(400).json({ message: 'Invalid login attempt.' });
     }

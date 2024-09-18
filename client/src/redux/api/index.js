@@ -89,7 +89,7 @@ export const markAttendance = (data) =>
 // Student
 
 export const studentSignIn = (formData) =>
-  API.post("/api/student/login", formData);
+  API.post("/api/student/login", formData, { withCredentials: true });
 
 export const studentUpdatePassword = (updatedPassword) =>
   API.post("/api/student/updatepassword", updatedPassword);
