@@ -93,7 +93,7 @@ export const studentLogin = async (req, res) => {
 
       // Generate a JWT token for the session
       const token = jwt.sign(
-        { email: existingStudent.email, id: existingStudent._id },
+        { email: existingStudent.email, id: existingStudent._id , role: 'student'},
         process.env.JWT_SECRET,
         { expiresIn: '1h' }
       );
@@ -117,7 +117,7 @@ export const studentLogin = async (req, res) => {
 
       // Generate JWT token for traditional login
       const token = jwt.sign(
-        { email: existingStudent.email, id: existingStudent._id },
+        { email: existingStudent.email, id: existingStudent._id, role: 'student' },
         process.env.JWT_SECRET, // Use the environment variable for JWT secret
         { expiresIn: '1h' }
       );

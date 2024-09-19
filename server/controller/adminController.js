@@ -30,7 +30,8 @@ export const adminLogin =
     const token = jwt.sign(
       {
         email: existingAdmin.email,
-        id: existingAdmin._id,
+        id: existingAdmin._id, 
+        role: 'admin'
       },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
@@ -655,14 +656,14 @@ export const getAllAdmin = async (req, res) => {
     console.log("Backend Error", error);
   }
 };
-export const getAllDepartment = async (req, res) => {
-  try {
-    const departments = await Department.find();
-    res.status(200).json(departments);
-  } catch (error) {
-    console.log("Backend Error", error);
-  }
-};
+  export const getAllDepartment = async (req, res) => {
+    try {
+      const departments = await Department.find();
+      res.status(200).json(departments);
+    } catch (error) {
+      console.log("Backend Error", error);
+    }
+  };
 export const getAllSubject = async (req, res) => {
   try {
     const subjects = await Subject.find();

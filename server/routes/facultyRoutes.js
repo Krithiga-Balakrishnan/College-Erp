@@ -13,13 +13,20 @@ import auth from "../middleware/auth.js";
 
 const router = express.Router();
 
+const checkRole = (requiredRole) => (req, res, next) => {
+  if (req.userRole !== requiredRole) {
+    return res.status(403).json({ message: "Forbidden: Insufficient Permissions" });
+  }
+  next();
+};
+
 router.post("/login", facultyLogin);
-router.post("/updatepassword", auth, updatedPassword);
-router.post("/updateprofile", auth, updateFaculty);
-router.post("/createtest", auth, createTest);
-router.post("/gettest", auth, getTest);
-router.post("/getstudent", auth, getStudent);
-router.post("/uploadmarks", auth, uploadMarks);
-router.post("/markattendance", auth, markAttendance);
+router.post("/updatepassword", auth, checkRole('faculty'), updatedPassword);
+router.post("/updateprofile", auth, checkRole('faculty'), updateFaculty);
+router.post("/createtest", auth, checkRole('faculty'), createTest);
+router.post("/gettest", auth, checkRole('faculty'), getTest);
+router.post("/getstudent", auth, checkRole('faculty'), getStudent);
+router.post("/uploadmarks", auth, checkRole('faculty'), uploadMarks);
+router.post("/markattendance", auth, checkRole('faculty'), markAttendance);
 
 export default router;

@@ -42,12 +42,14 @@ import DeleteFaculty from "./components/admin/deleteFaculty/DeleteFaculty";
 import DeleteStudent from "./components/admin/deleteStudent/DeleteStudent";
 import DeleteSubject from "./components/admin/deleteSubject/DeleteSubject";
 import CreateNotice from "./components/admin/createNotice/CreateNotice";
+import Unauthorized from './components/Unauthorized';
 
 const App = () => {
   return (
     <Routes>
       <Route exact path="/" element={<Login />} />
-
+      <Route path="/unauthorized" element={<Unauthorized />} />
+      
       {/* Admin  */}
 
       <Route path="/login/adminlogin" element={<AdminLogin />} />
