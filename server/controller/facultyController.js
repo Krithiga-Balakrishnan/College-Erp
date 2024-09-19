@@ -7,6 +7,8 @@ import Attendence from "../models/attendance.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 
+import { body, validationResult } from "express-validator";
+
 export const facultyLogin = async (req, res) => {
   const { username, password } = req.body;
   const errors = { usernameError: String, passwordError: String };
@@ -72,83 +74,113 @@ export const updatedPassword = async (req, res) => {
   }
 };
 
-export const updateFaculty = async (req, res) => {
-  try {
-    const { name, dob, department, contactNumber, avatar, email, designation } =
-      req.body;
-    const updatedFaculty = await Faculty.findOne({ email });
-    if (name) {
-      updatedFaculty.name = name;
-      await updatedFaculty.save();
+export const updateFaculty = [
+  // Apply trim and escape for sanitization
+  body('name').optional().trim().escape(),
+  body('dob').optional().trim().escape(),
+  body('department').optional().trim().escape(),
+  body('contactNumber').optional().trim().escape(),
+  body('avatar').optional().trim().escape(),
+  body('email').optional().trim().escape(),
+  body('designation').optional().trim().escape(),
+
+  async (req, res) => {
+    // Check for validation errors
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
     }
-    if (dob) {
-      updatedFaculty.dob = dob;
+
+    try {
+      const { name, dob, department, contactNumber, avatar, email, designation } = req.body;
+
+      // Find the faculty by email
+      const updatedFaculty = await Faculty.findOne({ email });
+      if (!updatedFaculty) {
+        return res.status(404).json({ error: "Faculty not found" });
+      }
+
+      // Only update the fields provided in the request
+      if (name) updatedFaculty.name = name;
+      if (dob) updatedFaculty.dob = dob;
+      if (department) updatedFaculty.department = department;
+      if (contactNumber) updatedFaculty.contactNumber = contactNumber;
+      if (avatar) updatedFaculty.avatar = avatar;
+      if (designation) updatedFaculty.designation = designation;
+
+      // Save the updated faculty information
       await updatedFaculty.save();
+
+      res.status(200).json({
+        message: "Faculty updated successfully",
+        updatedFaculty,
+      });
+    } catch (error) {
+      const errors = { backendError: error.message };
+      res.status(500).json(errors);
     }
-    if (department) {
-      updatedFaculty.department = department;
-      await updatedFaculty.save();
-    }
-    if (contactNumber) {
-      updatedFaculty.contactNumber = contactNumber;
-      await updatedFaculty.save();
-    }
-    if (designation) {
-      updatedFaculty.designation = designation;
-      await updatedFaculty.save();
-    }
-    if (avatar) {
-      updatedFaculty.avatar = avatar;
-      await updatedFaculty.save();
-    }
-    res.status(200).json(updatedFaculty);
-  } catch (error) {
-    const errors = { backendError: String };
-    errors.backendError = error;
-    res.status(500).json(errors);
   }
-};
+];
 
-export const createTest = async (req, res) => {
-  try {
-    const { subjectCode, department, year, section, date, test, totalMarks } =
-      req.body;
-    const errors = { testError: String };
-    const existingTest = await Test.findOne({
-      subjectCode,
-      department,
-      year,
-      section,
-      test,
-    });
-    if (existingTest) {
-      errors.testError = "Given Test is already created";
-      return res.status(400).json(errors);
+export const createTest = [
+  // Apply trim and escape for sanitization
+  body('subjectCode').trim().escape(),
+  body('department').trim().escape(),
+  body('year').trim().escape(),
+  body('section').trim().escape(),
+  body('date').trim().escape(),
+  body('test').trim().escape(),
+  body('totalMarks').trim().escape(),
+
+  async (req, res) => {
+    // Check for validation errors
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
     }
 
-    const newTest = await new Test({
-      totalMarks,
-      section,
-      test,
-      date,
-      department,
-      subjectCode,
-      year,
-    });
+    try {
+      const { subjectCode, department, year, section, date, test, totalMarks } = req.body;
+      const testErrors = { testError: String };
 
-    await newTest.save();
-    const students = await Student.find({ department, year, section });
-    return res.status(200).json({
-      success: true,
-      message: "Test added successfully",
-      response: newTest,
-    });
-  } catch (error) {
-    const errors = { backendError: String };
-    errors.backendError = error;
-    res.status(500).json(errors);
+      // Check if the test already exists
+      const existingTest = await Test.findOne({
+        subjectCode,
+        department,
+        year,
+        section,
+        test,
+      });
+      if (existingTest) {
+        testErrors.testError = "Given Test is already created";
+        return res.status(400).json(testErrors);
+      }
+
+      // Create a new test
+      const newTest = new Test({
+        totalMarks,
+        section,
+        test,
+        date,
+        department,
+        subjectCode,
+        year,
+      });
+
+      // Save the new test
+      await newTest.save();
+
+      return res.status(200).json({
+        success: true,
+        message: "Test added successfully",
+        response: newTest,
+      });
+    } catch (error) {
+      const errors = { backendError: error.message };
+      res.status(500).json(errors);
+    }
   }
-};
+];
 
 export const getTest = async (req, res) => {
   try {

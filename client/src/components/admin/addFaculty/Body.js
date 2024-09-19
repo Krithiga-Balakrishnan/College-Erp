@@ -8,12 +8,14 @@ import MenuItem from "@mui/material/MenuItem";
 import Spinner from "../../../utils/Spinner";
 import { ADD_FACULTY, SET_ERRORS } from "../../../redux/actionTypes";
 import * as classes from "../../../utils/styles";
+
 const Body = () => {
   const dispatch = useDispatch();
   const store = useSelector((state) => state);
   const departments = useSelector((state) => state.admin.allDepartment);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState({});
+  const [avatarError, setAvatarError] = useState(false); // Track avatar-specific errors
   const [value, setValue] = useState({
     name: "",
     dob: "",
@@ -26,16 +28,43 @@ const Body = () => {
     designation: "",
   });
 
+  // Ensure email errors only reset email field
   useEffect(() => {
-    if (Object.keys(store.errors).length !== 0) {
-      setError(store.errors);
-      setValue({ ...value, email: "" });
+    if (store.errors?.emailError) {
+      setError(store.errors); // Set email errors
+      setValue({ ...value, email: "" }); // Clear email field if there is an email error
+    } else if (Object.keys(store.errors).length !== 0) {
+      setError(store.errors); // Set other errors (like avatar or backend errors)
     }
   }, [store.errors]);
+
+  const validateAvatar = (file) => {
+    const validTypes = ["image/jpeg", "image/png", "image/jpg"];
+    const maxSize = 2 * 1024 * 1024; // 2MB
+    if (!validTypes.includes(file.type)) {
+      setError({ avatarError: "Invalid file type. Only JPEG, JPG, and PNG are allowed." });
+      setAvatarError(true); // Mark as invalid
+      return false;
+    }
+    if (file.size > maxSize) {
+      setError({ avatarError: "File size exceeds 2MB." });
+      setAvatarError(true); // Mark as invalid
+      return false;
+    }
+    setAvatarError(false); // Clear avatar errors if valid
+    return true;
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     setError({});
+    
+    // Prevent submission if there are errors
+    if (avatarError) {
+      setError({ ...error, avatarError: "Please upload a valid file." });
+      return; // Exit without submitting
+    }
+
     setLoading(true);
     dispatch(addFaculty(value));
   };
@@ -74,13 +103,12 @@ const Body = () => {
           <AddIcon />
           <h1>Add Faculty</h1>
         </div>
-        <div className=" mr-10 bg-white flex flex-col rounded-xl ">
+        <div className="mr-10 bg-white flex flex-col rounded-xl ">
           <form className={classes.adminForm0} onSubmit={handleSubmit}>
             <div className={classes.adminForm1}>
               <div className={classes.adminForm2l}>
                 <div className={classes.adminForm3}>
                   <h1 className={classes.adminLabel}>Name :</h1>
-
                   <input
                     placeholder="Full Name"
                     required
@@ -94,7 +122,6 @@ const Body = () => {
                 </div>
                 <div className={classes.adminForm3}>
                   <h1 className={classes.adminLabel}>DOB :</h1>
-
                   <input
                     placeholder="DD/MM/YYYY"
                     required
@@ -108,7 +135,6 @@ const Body = () => {
                 </div>
                 <div className={classes.adminForm3}>
                   <h1 className={classes.adminLabel}>Email :</h1>
-
                   <input
                     placeholder="Email"
                     required
@@ -122,7 +148,6 @@ const Body = () => {
                 </div>
                 <div className={classes.adminForm3}>
                   <h1 className={classes.adminLabel}>Designation :</h1>
-
                   <input
                     placeholder="Designation"
                     required
@@ -146,7 +171,8 @@ const Body = () => {
                     value={value.department}
                     onChange={(e) =>
                       setValue({ ...value, department: e.target.value })
-                    }>
+                    }
+                  >
                     <MenuItem value="">None</MenuItem>
                     {departments?.map((dp, idx) => (
                       <MenuItem key={idx} value={dp.department}>
@@ -165,7 +191,8 @@ const Body = () => {
                     value={value.gender}
                     onChange={(e) =>
                       setValue({ ...value, gender: e.target.value })
-                    }>
+                    }
+                  >
                     <MenuItem value="">None</MenuItem>
                     <MenuItem value="Male">Male</MenuItem>
                     <MenuItem value="Female">Female</MenuItem>
@@ -174,7 +201,6 @@ const Body = () => {
                 </div>
                 <div className={classes.adminForm3}>
                   <h1 className={classes.adminLabel}>Contact Number :</h1>
-
                   <input
                     required
                     placeholder="Contact Number"
@@ -188,13 +214,14 @@ const Body = () => {
                 </div>
                 <div className={classes.adminForm3}>
                   <h1 className={classes.adminLabel}>Avatar :</h1>
-
                   <FileBase
                     type="file"
                     multiple={false}
-                    onDone={({ base64 }) =>
-                      setValue({ ...value, avatar: base64 })
-                    }
+                    onDone={({ base64, file }) => {
+                      if (validateAvatar(file)) {
+                        setValue({ ...value, avatar: base64 });
+                      }
+                    }}
                   />
                 </div>
               </div>
@@ -217,9 +244,11 @@ const Body = () => {
                     username: "",
                   });
                   setError({});
+                  setAvatarError(false);
                 }}
                 className={classes.adminFormClearButton}
-                type="button">
+                type="button"
+              >
                 Clear
               </button>
             </div>
@@ -233,9 +262,9 @@ const Body = () => {
                   messageColor="blue"
                 />
               )}
-              {(error.emailError || error.backendError) && (
+              {(error.emailError || error.backendError || error.avatarError) && (
                 <p className="text-red-500">
-                  {error.emailError || error.backendError}
+                  {error.emailError || error.backendError || error.avatarError}
                 </p>
               )}
             </div>
