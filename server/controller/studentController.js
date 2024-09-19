@@ -46,7 +46,7 @@ const client = new OAuth2Client(process.env.GOOGLE_OAUTH_CLIENT_ID); // Make sur
 
 export const studentLogin = async (req, res) => {
   const { googleCredential, username, password } = req.body;
-  
+
   try {
     if (googleCredential) {
       // Verify the Google credential
@@ -60,7 +60,7 @@ export const studentLogin = async (req, res) => {
 
       // Fetch or create student in the database
       let existingStudent = await Student.findOne({ email });
-      
+
       if (!existingStudent) {
         const existingDepartment = await Department.findOne({ department: 'General' });
         let departmentHelper = existingDepartment ? existingDepartment.departmentCode : '000';
@@ -96,7 +96,7 @@ export const studentLogin = async (req, res) => {
 
       // Generate a JWT token for the session
       const token = jwt.sign(
-        { email: existingStudent.email, id: existingStudent._id },
+        { email: existingStudent.email, id: existingStudent._id, role: 'student' },
         process.env.JWT_SECRET,
         { expiresIn: '1h' }
       );
@@ -106,7 +106,7 @@ export const studentLogin = async (req, res) => {
 
     } else if (username && password) {
       const errors = { usernameError: null, passwordError: null };
-      
+
       const existingStudent = await Student.findOne({ username });
       if (!existingStudent) {
         errors.usernameError = "Student doesn't exist.";
@@ -124,7 +124,7 @@ export const studentLogin = async (req, res) => {
 
       // Generate JWT token for traditional login
       const token = jwt.sign(
-        { email: existingStudent.email, id: existingStudent._id },
+        { email: existingStudent.email, id: existingStudent._id, role: 'student' },
         process.env.JWT_SECRET, // Use the environment variable for JWT secret
         { expiresIn: '1h' }
       );
@@ -152,14 +152,14 @@ export const updatedPassword = async (req, res) => {
     }
 
     const student = await Student.findOne({ email });
-    
+
     let hashedPassword;
     try {
       hashedPassword = await bcrypt.hash(newPassword, 10);
     } catch (hashError) {
       return res.status(500).json({ message: "Error hashing the password" });
     }
-    
+
     student.password = hashedPassword;
     await student.save();
     if (student.passwordUpdated === false) {

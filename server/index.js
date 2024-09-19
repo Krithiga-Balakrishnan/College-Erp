@@ -15,11 +15,37 @@ dotenv.config();
 
 app.use(bodyParser.json({ limit: "30mb", extended: true }));
 app.use(bodyParser.urlencoded({ limit: "30mb", extended: true }));
-// Configure CORS to allow credentials and localhost:3000
-app.use(cors({
-  origin: 'http://localhost:3000', // Allow requests from localhost:3000
-  credentials: true // Allow cookies to be sent from the frontend
-}));
+
+// CORS configuration for allowing localhost:3000 and its subdomains
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests from localhost:3000 or any of its subdomains
+    if (!origin || origin === 'http://localhost:3000' || origin.endsWith('.localhost:3000')) {
+      callback(null, true);
+    } else {
+      // Reject the request
+      callback(new Error('Not allowed by CORS')); 
+    }
+  },
+  // Specify allowed methods
+  methods: ['GET', 'POST', 'PUT', 'DELETE'], 
+  // Specify allowed headers
+  allowedHeaders: ['Content-Type', 'Authorization'], 
+  // Allow cookies and credentials to be sent
+  credentials: true, 
+};
+
+// Apply the CORS middleware with the options
+app.use(cors(corsOptions));
+
+// Handling CORS errors globally
+app.use((err, req, res, next) => {
+  if (err instanceof Error && err.message === 'Not allowed by CORS') {
+    res.status(403).json({ message: 'CORS policy does not allow access from this origin.' });
+  } else {
+    next(err); // Pass on any other errors
+  }
+});
 
 // Middleware to parse cookies (necessary for CSRF protection)
 app.use(cookieParser());

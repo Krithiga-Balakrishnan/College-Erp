@@ -5,9 +5,28 @@ import { getAttendance } from "../../../redux/actions/studentActions";
 import Header from "../Header";
 import Sidebar from "../Sidebar";
 import Body from "./Body";
+import { useNavigate } from 'react-router-dom';
+import jwtDecode from 'jwt-decode';
 
 const Attendance = () => {
+
+  const navigate = useNavigate();
+  // Extract token from localStorage
   const user = JSON.parse(localStorage.getItem("user"));
+  let role;
+
+  if (user && user.token) {
+    // Decode the JWT token to get the role
+    const decodedToken = jwtDecode(user.token);
+    role = decodedToken.role; // This will give you the role
+    console.log('Decoded Token Role:', role);
+  }
+
+  useEffect(() => {
+    if (!role || role !== 'student') {
+      navigate('/unauthorized'); // Redirect to unauthorized page if role is not faculty
+    }
+  }, [role, navigate]);
 
   const dispatch = useDispatch();
   useEffect(() => {

@@ -12,6 +12,15 @@ import * as api from "../api";
 export const studentSignIn = (formData, navigate) => async (dispatch) => {
   try {
     const { data } = await api.studentSignIn(formData);
+    // Decode the token to extract the role from it
+    const tokenPayload = JSON.parse(atob(data.token.split('.')[1])); // Decode JWT payload
+    console.log('Decoded JWT Token:', tokenPayload); // You should see the role here
+
+    // Store the entire user data including token
+    localStorage.setItem('user', JSON.stringify(data));
+
+    // Log the role
+    console.log('User Role:', tokenPayload.role); // Ensure role is present
     dispatch({ type: STUDENT_LOGIN, data });
     if (data.result.passwordUpdated) navigate("/student/home");
     else navigate("/student/password");
