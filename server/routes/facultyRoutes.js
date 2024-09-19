@@ -10,10 +10,11 @@ import {
   markAttendance,
 } from "../controller/facultyController.js";
 import auth from "../middleware/auth.js";
+import csrfProtection from "../middleware/csrfMiddleware.js";
 
 const router = express.Router();
 
-router.post("/login", facultyLogin);
+router.post("/login", csrfProtection, facultyLogin);
 router.post("/updatepassword", auth, updatedPassword);
 router.post("/updateprofile", auth, updateFaculty);
 router.post("/createtest", auth, createTest);

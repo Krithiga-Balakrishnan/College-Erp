@@ -6,6 +6,7 @@ import Subject from "../models/subject.js";
 import Notice from "../models/notice.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
+import csrfProtection from "../middleware/csrfMiddleware.js";
 
 
 export const adminLogin =
@@ -26,7 +27,8 @@ export const adminLogin =
       errors.passwordError = "Invalid Credentials";
       return res.status(404).json(errors);
     }
-
+    const csrfToken = req.csrfToken();
+    console.log('Generated CSRF Token:', csrfToken);
     const token = jwt.sign(
       {
         email: existingAdmin.email,
@@ -35,8 +37,9 @@ export const adminLogin =
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
+    
 
-    res.status(200).json({ result: existingAdmin, token: token });
+    res.status(200).json({ result: existingAdmin, token: token, csrfToken});
   } catch (error) {
     console.log(error);
   }

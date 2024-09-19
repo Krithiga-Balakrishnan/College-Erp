@@ -6,6 +6,7 @@ import Marks from "../models/marks.js";
 import Attendence from "../models/attendance.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
+import csrfProtection from "../middleware/csrfMiddleware.js";
 
 export const facultyLogin = async (req, res) => {
   const { username, password } = req.body;
@@ -24,7 +25,8 @@ export const facultyLogin = async (req, res) => {
       errors.passwordError = "Invalid Credentials";
       return res.status(404).json(errors);
     }
-
+    const csrfToken = req.csrfToken();
+    console.log('Generated CSRF Token:', csrfToken); // Log the generated toke
     const token = jwt.sign(
       {
         email: existingFaculty.email,
@@ -34,7 +36,7 @@ export const facultyLogin = async (req, res) => {
       { expiresIn: "1h" }
     );
 
-    res.status(200).json({ result: existingFaculty, token: token });
+    res.status(200).json({ result: existingFaculty, token: token,  csrfToken });
   } catch (error) {
     console.log(error);
   }

@@ -8,7 +8,7 @@ import { studentSignIn } from "../../../redux/actions/studentActions";
 import { GoogleLogin } from "@react-oauth/google"; // Import GoogleLogin
 import jwt_decode from "jwt-decode"; 
 import { toast } from "react-toastify";
-import axios from "../../../utils/axiosInstance";
+import useCsrfToken from "../../../hooks/useCsrfToken"; 
 
 
 const StudentLogin = () => {
@@ -21,30 +21,7 @@ const StudentLogin = () => {
   const navigate = useNavigate();
   const store = useSelector((state) => state);
   const [error, setError] = useState({});
-  const [csrfToken, setCsrfToken] = useState(""); // Add this line
-
-  useEffect(() => {
-    const fetchCsrfToken = async () => {
-      const storedCsrfToken = localStorage.getItem("csrfToken");
-      if (storedCsrfToken) {
-        setCsrfToken(storedCsrfToken); // Use the stored token
-      } else {
-        try {
-          const response = await axios.get("http://localhost:5001/api/csrf-token", { withCredentials: true });
-          const token = response.data.csrfToken;
-          setCsrfToken(token); // Set CSRF token to state
-          localStorage.setItem("csrfToken", token); // Store it in localStorage
-        } catch (error) {
-          console.error("Failed to fetch CSRF token", error);
-        }
-      }
-    };
-  
-    fetchCsrfToken(); // Call the function to fetch the CSRF token
-  }, []);
-  
-  
-  
+  const csrfToken = useCsrfToken(); // Call the custom hook to get the CSRF token  
   useEffect(() => {
     setTimeout(() => {
       setTranslate(true);

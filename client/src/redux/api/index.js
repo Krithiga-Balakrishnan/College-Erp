@@ -14,7 +14,7 @@ API.interceptors.request.use((req) => {
 
 // Admin
 
-export const adminSignIn = (formData) => API.post("/api/admin/login", formData);
+export const adminSignIn = (formData) => API.post("/api/admin/login", formData, { withCredentials: true });
 
 export const adminUpdatePassword = (updatedPassword) =>
   API.post("/api/admin/updatepassword", updatedPassword);
@@ -70,7 +70,7 @@ export const getNotice = (notice) => API.post("/api/admin/getnotice", notice);
 // Faculty
 
 export const facultySignIn = (formData) =>
-  API.post("/api/faculty/login", formData);
+  API.post("/api/faculty/login", formData, { withCredentials: true });
 
 export const facultyUpdatePassword = (updatedPassword) =>
   API.post("/api/faculty/updatepassword", updatedPassword);

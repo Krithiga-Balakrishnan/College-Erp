@@ -26,9 +26,11 @@ import {
   createNotice,
   getNotice,
 } from "../controller/adminController.js";
+import csrfProtection from "../middleware/csrfMiddleware.js";
+
 const router = express.Router();
 
-router.post("/login", adminLogin);
+router.post("/login", csrfProtection, adminLogin);
 router.post("/updatepassword", auth, updatedPassword);
 router.get("/getallstudent", auth, getAllStudent);
 router.post("/createnotice", auth, createNotice);
