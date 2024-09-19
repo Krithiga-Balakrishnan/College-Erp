@@ -170,7 +170,13 @@ export const addAdmin = [
       let hashedPassword;
       const newDob = dob.split("-").reverse().join("-");
 
+
+       try {
       hashedPassword = await bcrypt.hash(newDob, 10);
+    } catch (hashError) {
+      return res.status(500).json({ message: "Error hashing the password" });
+    }
+
       var passwordUpdated = false;
 
       const newAdmin = new Admin({
@@ -201,43 +207,6 @@ export const addAdmin = [
   },
 ];
 
-<<<<<<< HEAD
-    var username = components.join("");
-    let hashedPassword;
-    const newDob = dob.split("-").reverse().join("-");
-
-    try {
-      hashedPassword = await bcrypt.hash(newDob, 10);
-    } catch (hashError) {
-      return res.status(500).json({ message: "Error hashing the password" });
-    }
-    var passwordUpdated = false;
-    const newAdmin = await new Admin({
-      name,
-      email,
-      password: hashedPassword,
-      joiningYear,
-      username,
-      department,
-      avatar,
-      contactNumber,
-      dob,
-      passwordUpdated,
-    });
-    await newAdmin.save();
-    return res.status(200).json({
-      success: true,
-      message: "Admin registerd successfully",
-      response: newAdmin,
-    });
-  } catch (error) {
-    const errors = { backendError: String };
-    errors.backendError = error;
-    res.status(500).json(errors);
-  }
-};
-=======
->>>>>>> 8b86ee9db80269330c6f8e1e9917f7a098625f99
 export const addDummyAdmin = async () => {
   const email = "dummy@gmail.com";
   const password = "123";
@@ -423,7 +392,13 @@ export const addFaculty = [
 
       // Hash the date of birth to use as a temporary password
       const newDob = dob.split("-").reverse().join("-");
-      const hashedPassword = await bcrypt.hash(newDob, 10);
+
+      try {
+        hashedPassword = await bcrypt.hash(newDob, 10);
+      } catch (hashError) {
+        return res.status(500).json({ message: "Error hashing the password" });
+      }
+      
       var passwordUpdated = false;
 
       // Create new faculty record
@@ -454,101 +429,8 @@ export const addFaculty = [
       // Handle backend errors
       return res.status(500).json({ backendError: error.message });
     }
-<<<<<<< HEAD
-
-    const newDepartment = await new Department({
-      department,
-      departmentCode,
-    });
-
-    await newDepartment.save();
-    return res.status(200).json({
-      success: true,
-      message: "Department added successfully",
-      response: newDepartment,
-    });
-  } catch (error) {
-    const errors = { backendError: String };
-    errors.backendError = error;
-    res.status(500).json(errors);
-  }
-};
-
-export const addFaculty = async (req, res) => {
-  try {
-    const {
-      name,
-      dob,
-      department,
-      contactNumber,
-      avatar,
-      email,
-      joiningYear,
-      gender,
-      designation,
-    } = req.body;
-    const errors = { emailError: String };
-    const existingFaculty = await Faculty.findOne({ email });
-    if (existingFaculty) {
-      errors.emailError = "Email already exists";
-      return res.status(400).json(errors);
-    }
-    const existingDepartment = await Department.findOne({ department });
-    let departmentHelper = existingDepartment.departmentCode;
-
-    const faculties = await Faculty.find({ department });
-    let helper;
-    if (faculties.length < 10) {
-      helper = "00" + faculties.length.toString();
-    } else if (faculties.length < 100 && faculties.length > 9) {
-      helper = "0" + faculties.length.toString();
-    } else {
-      helper = faculties.length.toString();
-    }
-    var date = new Date();
-    var components = ["FAC", date.getFullYear(), departmentHelper, helper];
-
-    var username = components.join("");
-    let hashedPassword;
-    const newDob = dob.split("-").reverse().join("-");
-
-    try {
-      hashedPassword = await bcrypt.hash(newDob, 10);
-    } catch (hashError) {
-      return res.status(500).json({ message: "Error hashing the password" });
-    }
-    var passwordUpdated = false;
-
-    const newFaculty = await new Faculty({
-      name,
-      email,
-      password: hashedPassword,
-      joiningYear,
-      username,
-      department,
-      avatar,
-      contactNumber,
-      dob,
-      gender,
-      designation,
-      passwordUpdated,
-    });
-    await newFaculty.save();
-    return res.status(200).json({
-      success: true,
-      message: "Faculty registerd successfully",
-      response: newFaculty,
-    });
-  } catch (error) {
-    const errors = { backendError: String };
-    errors.backendError = error;
-    res.status(500).json(errors);
-  }
-};
-=======
   },
 ];
->>>>>>> 8b86ee9db80269330c6f8e1e9917f7a098625f99
 
 export const getFaculty = async (req, res) => {
   try {
@@ -774,50 +656,12 @@ export const addStudent = [
   body('motherContactNumber').isMobilePhone().trim().escape(),
   body('year').isNumeric().trim().escape(),
 
-<<<<<<< HEAD
-    var username = components.join("");
-    let hashedPassword;
-    const newDob = dob.split("-").reverse().join("-");
-
-    try {
-      hashedPassword = await bcrypt.hash(newDob, 10);
-    } catch (hashError) {
-      return res.status(500).json({ message: "Error hashing the password" });
-    }
-    var passwordUpdated = false;
-
-    const newStudent = await new Student({
-      name,
-      dob,
-      password: hashedPassword,
-      username,
-      department,
-      contactNumber,
-      avatar,
-      email,
-      section,
-      gender,
-      batch,
-      fatherName,
-      motherName,
-      fatherContactNumber,
-      motherContactNumber,
-      year,
-      passwordUpdated,
-    });
-    await newStudent.save();
-    const subjects = await Subject.find({ department, year });
-    if (subjects.length !== 0) {
-      for (var i = 0; i < subjects.length; i++) {
-        newStudent.subjects.push(subjects[i]._id);
-=======
   async (req, res) => {
     try {
       // Check for validation errors
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
->>>>>>> 8b86ee9db80269330c6f8e1e9917f7a098625f99
       }
 
       const {
@@ -863,7 +707,12 @@ export const addStudent = [
       const newDob = dob.split("-").reverse().join("-");
 
       // Hash the password (dob)
-      const hashedPassword = await bcrypt.hash(newDob, 10);
+      try {
+        hashedPassword = await bcrypt.hash(newDob, 10);
+      } catch (hashError) {
+        return res.status(500).json({ message: "Error hashing the password" });
+      }
+
       const passwordUpdated = false;
 
       // Create new student
@@ -909,6 +758,7 @@ export const addStudent = [
     }
   },
 ];
+
 
 export const getStudent = async (req, res) => {
   try {
