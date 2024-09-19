@@ -44,6 +44,8 @@ const client = new OAuth2Client(process.env.GOOGLE_OAUTH_CLIENT_ID); // Make sur
 //   }
 // };
 
+import { body, validationResult } from "express-validator";
+
 export const studentLogin = async (req, res) => {
   const { googleCredential, username, password } = req.body;
 
@@ -168,73 +170,72 @@ export const updatedPassword = async (req, res) => {
     res.status(500).json(error);
   }
 };
+export const updateStudent = [
+  // Apply trim and escape for sanitization
+  body('name').trim().escape(),
+  body('dob').trim().escape(),
+  body('department').trim().escape(),
+  body('contactNumber').trim().escape(),
+  body('avatar').trim().escape(),
+  body('email').trim().isEmail().normalizeEmail(), // Validates and normalizes email
+  body('batch').trim().escape(),
+  body('section').trim().escape(),
+  body('year').trim().escape(),
+  body('fatherName').trim().escape(),
+  body('motherName').trim().escape(),
+  body('fatherContactNumber').trim().escape(),
 
-export const updateStudent = async (req, res) => {
-  try {
-    const {
-      name,
-      dob,
-      department,
-      contactNumber,
-      avatar,
-      email,
-      batch,
-      section,
-      year,
-      fatherName,
-      motherName,
-      fatherContactNumber,
-    } = req.body;
-    const updatedStudent = await Student.findOne({ email });
-    if (name) {
-      updatedStudent.name = name;
-      await updatedStudent.save();
+  async (req, res) => {
+    // Check for validation errors
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
     }
-    if (dob) {
-      updatedStudent.dob = dob;
+
+    try {
+      const {
+        name,
+        dob,
+        department,
+        contactNumber,
+        avatar,
+        email,
+        batch,
+        section,
+        year,
+        fatherName,
+        motherName,
+        fatherContactNumber,
+      } = req.body;
+
+      // Find the student by email
+      const updatedStudent = await Student.findOne({ email });
+      if (!updatedStudent) {
+        return res.status(404).json({ error: "Student not found" });
+      }
+
+      // Update fields if provided
+      if (name) updatedStudent.name = name;
+      if (dob) updatedStudent.dob = dob;
+      if (department) updatedStudent.department = department;
+      if (contactNumber) updatedStudent.contactNumber = contactNumber;
+      if (batch) updatedStudent.batch = batch;
+      if (section) updatedStudent.section = section;
+      if (year) updatedStudent.year = year;
+      if (fatherName) updatedStudent.fatherName = fatherName;
+      if (motherName) updatedStudent.motherName = motherName;
+      if (fatherContactNumber) updatedStudent.fatherContactNumber = fatherContactNumber;
+      if (avatar) updatedStudent.avatar = avatar;
+
+      // Save the updated student
       await updatedStudent.save();
+
+      res.status(200).json(updatedStudent);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
     }
-    if (department) {
-      updatedStudent.department = department;
-      await updatedStudent.save();
-    }
-    if (contactNumber) {
-      updatedStudent.contactNumber = contactNumber;
-      await updatedStudent.save();
-    }
-    if (batch) {
-      updatedStudent.batch = batch;
-      await updatedStudent.save();
-    }
-    if (section) {
-      updatedStudent.section = section;
-      await updatedStudent.save();
-    }
-    if (year) {
-      updatedStudent.year = year;
-      await updatedStudent.save();
-    }
-    if (motherName) {
-      updatedStudent.motherName = motherName;
-      await updatedStudent.save();
-    }
-    if (fatherName) {
-      updatedStudent.fatherName = fatherName;
-      await updatedStudent.save();
-    }
-    if (fatherContactNumber) {
-      updatedStudent.fatherContactNumber = fatherContactNumber;
-      await updatedStudent.save();
-    }
-    if (avatar) {
-      updatedStudent.avatar = avatar;
-      await updatedStudent.save();
-    }
-    res.status(200).json(updatedStudent);
-  } catch (error) {
-    res.status(500).json(error);
   }
-};
+];
 
 export const testResult = async (req, res) => {
   try {

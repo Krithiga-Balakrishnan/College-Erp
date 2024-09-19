@@ -6,6 +6,7 @@ import Subject from "../models/subject.js";
 import Notice from "../models/notice.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
+import { body, validationResult } from "express-validator";
 
 
 export const adminLogin =
@@ -78,63 +79,129 @@ export const updatedPassword = async (req, res) => {
     res.status(500).json(errors);
   }
 };
-export const updateAdmin = async (req, res) => {
-  try {
-    const { name, dob, department, contactNumber, avatar, email } = req.body;
-    const updatedAdmin = await Admin.findOne({ email });
-    if (name) {
-      updatedAdmin.name = name;
-      await updatedAdmin.save();
-    }
-    if (dob) {
-      updatedAdmin.dob = dob;
-      await updatedAdmin.save();
-    }
-    if (department) {
-      updatedAdmin.department = department;
-      await updatedAdmin.save();
-    }
-    if (contactNumber) {
-      updatedAdmin.contactNumber = contactNumber;
-      await updatedAdmin.save();
-    }
-    if (avatar) {
-      updatedAdmin.avatar = avatar;
-      await updatedAdmin.save();
-    }
-    res.status(200).json(updatedAdmin);
-  } catch (error) {
-    const errors = { backendError: String };
-    errors.backendError = error;
-    res.status(500).json(errors);
-  }
-};
+export const updateAdmin = [
+  // Validation and sanitization
+  body('name').optional().trim().escape(),
+  body('dob').optional().trim().escape(),
+  body('department').optional().trim().escape(),
+  body('contactNumber').optional().trim().escape(),
+  body('avatar').optional().trim().escape(),
+  body('email').isEmail().normalizeEmail(),
 
-export const addAdmin = async (req, res) => {
-  try {
-    const { name, dob, department, contactNumber, avatar, email, joiningYear } =
-      req.body;
-    const errors = { emailError: String };
-    const existingAdmin = await Admin.findOne({ email });
-    if (existingAdmin) {
-      errors.emailError = "Email already exists";
-      return res.status(400).json(errors);
-    }
-    const existingDepartment = await Department.findOne({ department });
-    let departmentHelper = existingDepartment.departmentCode;
-    const admins = await Admin.find({ department });
+  async (req, res) => {
+    try {
+      // Check for validation errors
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
 
-    let helper;
-    if (admins.length < 10) {
-      helper = "00" + admins.length.toString();
-    } else if (admins.length < 100 && admins.length > 9) {
-      helper = "0" + admins.length.toString();
-    } else {
-      helper = admins.length.toString();
-    }
-    var date = new Date();
-    var components = ["ADM", date.getFullYear(), departmentHelper, helper];
+      const { name, dob, department, contactNumber, avatar, email } = req.body;
 
+      // Find the admin by email
+      const updatedAdmin = await Admin.findOne({ email });
+      if (!updatedAdmin) {
+        return res.status(404).json({ message: 'Admin not found' });
+      }
+
+      // Update the fields if provided
+      if (name) updatedAdmin.name = name;
+      if (dob) updatedAdmin.dob = dob;
+      if (department) updatedAdmin.department = department;
+      if (contactNumber) updatedAdmin.contactNumber = contactNumber;
+      if (avatar) updatedAdmin.avatar = avatar;
+
+      // Save the updated admin information
+      await updatedAdmin.save();
+
+      res.status(200).json(updatedAdmin);
+    } catch (error) {
+      const errors = { backendError: String };
+      errors.backendError = error;
+      res.status(500).json(errors);
+    }
+  },
+];
+
+export const addAdmin = [
+  // Validation and sanitization
+  body('name').trim().escape(),
+  body('dob').trim().escape(),
+  body('department').trim().escape(),
+  body('contactNumber').trim().escape(),
+  body('avatar').trim().escape(),
+  body('email').isEmail().normalizeEmail(),
+  body('joiningYear').trim().escape(),
+
+  async (req, res) => {
+    try {
+      // Check for validation errors
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+
+      const { name, dob, department, contactNumber, avatar, email, joiningYear } = req.body;
+
+      const errorsObj = { emailError: String };
+      const existingAdmin = await Admin.findOne({ email });
+      if (existingAdmin) {
+        errorsObj.emailError = "Email already exists";
+        return res.status(400).json(errorsObj);
+      }
+
+      const existingDepartment = await Department.findOne({ department });
+      let departmentHelper = existingDepartment.departmentCode;
+      const admins = await Admin.find({ department });
+
+      let helper;
+      if (admins.length < 10) {
+        helper = "00" + admins.length.toString();
+      } else if (admins.length < 100 && admins.length > 9) {
+        helper = "0" + admins.length.toString();
+      } else {
+        helper = admins.length.toString();
+      }
+
+      var date = new Date();
+      var components = ["ADM", date.getFullYear(), departmentHelper, helper];
+      var username = components.join("");
+
+      let hashedPassword;
+      const newDob = dob.split("-").reverse().join("-");
+
+      hashedPassword = await bcrypt.hash(newDob, 10);
+      var passwordUpdated = false;
+
+      const newAdmin = new Admin({
+        name,
+        email,
+        password: hashedPassword,
+        joiningYear,
+        username,
+        department,
+        avatar,
+        contactNumber,
+        dob,
+        passwordUpdated,
+      });
+
+      await newAdmin.save();
+
+      return res.status(200).json({
+        success: true,
+        message: "Admin registered successfully",
+        response: newAdmin,
+      });
+    } catch (error) {
+      const errors = { backendError: String };
+      errors.backendError = error;
+      res.status(500).json(errors);
+    }
+  },
+];
+
+<<<<<<< HEAD
     var username = components.join("");
     let hashedPassword;
     const newDob = dob.split("-").reverse().join("-");
@@ -169,6 +236,8 @@ export const addAdmin = async (req, res) => {
     res.status(500).json(errors);
   }
 };
+=======
+>>>>>>> 8b86ee9db80269330c6f8e1e9917f7a098625f99
 export const addDummyAdmin = async () => {
   const email = "dummy@gmail.com";
   const password = "123";
@@ -195,54 +264,197 @@ export const addDummyAdmin = async () => {
     console.log("Dummy user already exists.");
   }
 };
+export const createNotice = [
+  // Validation and sanitization for input fields
+  body('from').trim().escape(),
+  body('content').trim().escape(),
+  body('topic').trim().escape(),
+  body('date').trim().escape(),
+  body('noticeFor').trim().escape(),
 
-export const createNotice = async (req, res) => {
-  try {
-    const { from, content, topic, date, noticeFor } = req.body;
+  async (req, res) => {
+    try {
+      // Check for validation errors
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
 
-    const errors = { noticeError: String };
-    const exisitingNotice = await Notice.findOne({ topic, content, date });
-    if (exisitingNotice) {
-      errors.noticeError = "Notice already created";
-      return res.status(400).json(errors);
-    }
-    const newNotice = await new Notice({
-      from,
-      content,
-      topic,
-      noticeFor,
-      date,
-    });
-    await newNotice.save();
-    return res.status(200).json({
-      success: true,
-      message: "Notice created successfully",
-      response: newNotice,
-    });
-  } catch (error) {
-    const errors = { backendError: String };
-    errors.backendError = error;
-    res.status(500).json(errors);
-  }
-};
+      // Destructure sanitized input fields
+      const { from, content, topic, date, noticeFor } = req.body;
 
-export const addDepartment = async (req, res) => {
-  try {
-    const errors = { departmentError: String };
-    const { department } = req.body;
-    const existingDepartment = await Department.findOne({ department });
-    if (existingDepartment) {
-      errors.departmentError = "Department already added";
-      return res.status(400).json(errors);
+      // Check if a notice with the same topic, content, and date already exists
+      const existingNotice = await Notice.findOne({ topic, content, date });
+      if (existingNotice) {
+        return res.status(400).json({ noticeError: "Notice already created" });
+      }
+
+      // Create new notice with sanitized inputs
+      const newNotice = new Notice({
+        from,
+        content,
+        topic,
+        noticeFor,
+        date,
+      });
+
+      // Save the new notice to the database
+      await newNotice.save();
+
+      return res.status(200).json({
+        success: true,
+        message: "Notice created successfully",
+        response: newNotice,
+      });
+    } catch (error) {
+      // Handle backend errors
+      return res.status(500).json({ backendError: error.message });
     }
-    const departments = await Department.find({});
-    let add = departments.length + 1;
-    let departmentCode;
-    if (add < 9) {
-      departmentCode = "0" + add.toString();
-    } else {
-      departmentCode = add.toString();
+  },
+];
+export const addDepartment = [
+  // Validation and sanitization
+  body('department').trim().escape(),
+
+  async (req, res) => {
+    try {
+      // Check for validation errors
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+
+      const { department } = req.body;
+
+      // Check if the department already exists
+      const existingDepartment = await Department.findOne({ department });
+      if (existingDepartment) {
+        return res.status(400).json({ departmentError: "Department already added" });
+      }
+
+      // Get the number of existing departments to generate departmentCode
+      const departments = await Department.find({});
+      let add = departments.length + 1;
+      let departmentCode;
+      if (add < 9) {
+        departmentCode = "0" + add.toString();
+      } else {
+        departmentCode = add.toString();
+      }
+
+      // Create new department with sanitized inputs
+      const newDepartment = new Department({
+        department,
+        departmentCode,
+      });
+
+      // Save the new department to the database
+      await newDepartment.save();
+
+      return res.status(200).json({
+        success: true,
+        message: "Department added successfully",
+        response: newDepartment,
+      });
+    } catch (error) {
+      // Handle backend errors
+      return res.status(500).json({ backendError: error.message });
     }
+  },
+];
+
+
+export const addFaculty = [
+  // Validation and sanitization
+  body('name').trim().escape(),
+  body('dob').trim().escape(),
+  body('department').trim().escape(),
+  body('contactNumber').trim().escape(),
+  body('avatar').trim().escape(),
+  body('email').isEmail().trim().escape(),
+  body('joiningYear').trim().escape(),
+  body('gender').trim().escape(),
+  body('designation').trim().escape(),
+
+  async (req, res) => {
+    try {
+      // Check for validation errors
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+
+      const {
+        name,
+        dob,
+        department,
+        contactNumber,
+        avatar,
+        email,
+        joiningYear,
+        gender,
+        designation,
+      } = req.body;
+
+      // Check if faculty with the same email already exists
+      const existingFaculty = await Faculty.findOne({ email });
+      if (existingFaculty) {
+        return res.status(400).json({ emailError: "Email already exists" });
+      }
+
+      // Get department code from existing department
+      const existingDepartment = await Department.findOne({ department });
+      let departmentHelper = existingDepartment.departmentCode;
+
+      // Generate a unique username for the faculty
+      const faculties = await Faculty.find({ department });
+      let helper;
+      if (faculties.length < 10) {
+        helper = "00" + faculties.length.toString();
+      } else if (faculties.length < 100 && faculties.length > 9) {
+        helper = "0" + faculties.length.toString();
+      } else {
+        helper = faculties.length.toString();
+      }
+
+      var date = new Date();
+      var components = ["FAC", date.getFullYear(), departmentHelper, helper];
+      var username = components.join("");
+
+      // Hash the date of birth to use as a temporary password
+      const newDob = dob.split("-").reverse().join("-");
+      const hashedPassword = await bcrypt.hash(newDob, 10);
+      var passwordUpdated = false;
+
+      // Create new faculty record
+      const newFaculty = new Faculty({
+        name,
+        email,
+        password: hashedPassword,
+        joiningYear,
+        username,
+        department,
+        avatar,
+        contactNumber,
+        dob,
+        gender,
+        designation,
+        passwordUpdated,
+      });
+
+      // Save the new faculty to the database
+      await newFaculty.save();
+
+      return res.status(200).json({
+        success: true,
+        message: "Faculty registered successfully",
+        response: newFaculty,
+      });
+    } catch (error) {
+      // Handle backend errors
+      return res.status(500).json({ backendError: error.message });
+    }
+<<<<<<< HEAD
 
     const newDepartment = await new Department({
       department,
@@ -333,6 +545,10 @@ export const addFaculty = async (req, res) => {
     res.status(500).json(errors);
   }
 };
+=======
+  },
+];
+>>>>>>> 8b86ee9db80269330c6f8e1e9917f7a098625f99
 
 export const getFaculty = async (req, res) => {
   try {
@@ -366,44 +582,61 @@ export const getNotice = async (req, res) => {
   }
 };
 
-export const addSubject = async (req, res) => {
-  try {
-    const { totalLectures, department, subjectCode, subjectName, year } =
-      req.body;
-    const errors = { subjectError: String };
-    const subject = await Subject.findOne({ subjectCode });
-    if (subject) {
-      errors.subjectError = "Given Subject is already added";
-      return res.status(400).json(errors);
-    }
+export const addSubject = [
+  // Validation and sanitization
+  body('totalLectures').isNumeric().trim().escape(),
+  body('department').trim().escape(),
+  body('subjectCode').trim().escape(),
+  body('subjectName').trim().escape(),
+  body('year').isNumeric().trim().escape(),
 
-    const newSubject = await new Subject({
-      totalLectures,
-      department,
-      subjectCode,
-      subjectName,
-      year,
-    });
-
-    await newSubject.save();
-    const students = await Student.find({ department, year });
-    if (students.length !== 0) {
-      for (var i = 0; i < students.length; i++) {
-        students[i].subjects.push(newSubject._id);
-        await students[i].save();
+  async (req, res) => {
+    try {
+      // Check for validation errors
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
       }
+
+      const { totalLectures, department, subjectCode, subjectName, year } = req.body;
+
+      // Check if the subject already exists
+      const subject = await Subject.findOne({ subjectCode });
+      if (subject) {
+        return res.status(400).json({ subjectError: "Given Subject is already added" });
+      }
+
+      // Create new subject
+      const newSubject = new Subject({
+        totalLectures,
+        department,
+        subjectCode,
+        subjectName,
+        year,
+      });
+
+      await newSubject.save();
+
+      // Find students in the same department and year and add the subject to their records
+      const students = await Student.find({ department, year });
+      if (students.length !== 0) {
+        for (let i = 0; i < students.length; i++) {
+          students[i].subjects.push(newSubject._id);
+          await students[i].save();
+        }
+      }
+
+      return res.status(200).json({
+        success: true,
+        message: "Subject added successfully",
+        response: newSubject,
+      });
+    } catch (error) {
+      // Handle backend errors
+      return res.status(500).json({ backendError: error.message });
     }
-    return res.status(200).json({
-      success: true,
-      message: "Subject added successfully",
-      response: newSubject,
-    });
-  } catch (error) {
-    const errors = { backendError: String };
-    errors.backendError = error;
-    res.status(500).json(errors);
-  }
-};
+  },
+];
 
 export const getSubject = async (req, res) => {
   try {
@@ -523,45 +756,25 @@ export const deleteDepartment = async (req, res) => {
   }
 };
 
-export const addStudent = async (req, res) => {
-  try {
-    const {
-      name,
-      dob,
-      department,
-      contactNumber,
-      avatar,
-      email,
-      section,
-      gender,
-      batch,
-      fatherName,
-      motherName,
-      fatherContactNumber,
-      motherContactNumber,
-      year,
-    } = req.body;
-    const errors = { emailError: String };
-    const existingStudent = await Student.findOne({ email });
-    if (existingStudent) {
-      errors.emailError = "Email already exists";
-      return res.status(400).json(errors);
-    }
-    const existingDepartment = await Department.findOne({ department });
-    let departmentHelper = existingDepartment.departmentCode;
 
-    const students = await Student.find({ department });
-    let helper;
-    if (students.length < 10) {
-      helper = "00" + students.length.toString();
-    } else if (students.length < 100 && students.length > 9) {
-      helper = "0" + students.length.toString();
-    } else {
-      helper = students.length.toString();
-    }
-    var date = new Date();
-    var components = ["STU", date.getFullYear(), departmentHelper, helper];
+export const addStudent = [
+  // Validation and sanitization
+  body('name').trim().escape(),
+  body('dob').trim().escape(),
+  body('department').trim().escape(),
+  body('contactNumber').isMobilePhone().trim().escape(),
+  body('avatar').trim().escape(),
+  body('email').isEmail().normalizeEmail(),
+  body('section').trim().escape(),
+  body('gender').trim().escape(),
+  body('batch').trim().escape(),
+  body('fatherName').trim().escape(),
+  body('motherName').trim().escape(),
+  body('fatherContactNumber').isMobilePhone().trim().escape(),
+  body('motherContactNumber').isMobilePhone().trim().escape(),
+  body('year').isNumeric().trim().escape(),
 
+<<<<<<< HEAD
     var username = components.join("");
     let hashedPassword;
     const newDob = dob.split("-").reverse().join("-");
@@ -597,20 +810,105 @@ export const addStudent = async (req, res) => {
     if (subjects.length !== 0) {
       for (var i = 0; i < subjects.length; i++) {
         newStudent.subjects.push(subjects[i]._id);
+=======
+  async (req, res) => {
+    try {
+      // Check for validation errors
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+>>>>>>> 8b86ee9db80269330c6f8e1e9917f7a098625f99
       }
+
+      const {
+        name,
+        dob,
+        department,
+        contactNumber,
+        avatar,
+        email,
+        section,
+        gender,
+        batch,
+        fatherName,
+        motherName,
+        fatherContactNumber,
+        motherContactNumber,
+        year,
+      } = req.body;
+
+      // Check if the student email already exists
+      const existingStudent = await Student.findOne({ email });
+      if (existingStudent) {
+        return res.status(400).json({ emailError: "Email already exists" });
+      }
+
+      const existingDepartment = await Department.findOne({ department });
+      let departmentHelper = existingDepartment.departmentCode;
+
+      const students = await Student.find({ department });
+      let helper;
+      if (students.length < 10) {
+        helper = "00" + students.length.toString();
+      } else if (students.length < 100 && students.length > 9) {
+        helper = "0" + students.length.toString();
+      } else {
+        helper = students.length.toString();
+      }
+
+      const date = new Date();
+      const components = ["STU", date.getFullYear(), departmentHelper, helper];
+      const username = components.join("");
+
+      const newDob = dob.split("-").reverse().join("-");
+
+      // Hash the password (dob)
+      const hashedPassword = await bcrypt.hash(newDob, 10);
+      const passwordUpdated = false;
+
+      // Create new student
+      const newStudent = new Student({
+        name,
+        dob,
+        password: hashedPassword,
+        username,
+        department,
+        contactNumber,
+        avatar,
+        email,
+        section,
+        gender,
+        batch,
+        fatherName,
+        motherName,
+        fatherContactNumber,
+        motherContactNumber,
+        year,
+        passwordUpdated,
+      });
+
+      await newStudent.save();
+
+      // Add relevant subjects for the student based on department and year
+      const subjects = await Subject.find({ department, year });
+      if (subjects.length !== 0) {
+        for (let i = 0; i < subjects.length; i++) {
+          newStudent.subjects.push(subjects[i]._id);
+        }
+      }
+
+      await newStudent.save();
+
+      return res.status(200).json({
+        success: true,
+        message: "Student registered successfully",
+        response: newStudent,
+      });
+    } catch (error) {
+      return res.status(500).json({ backendError: error.message });
     }
-    await newStudent.save();
-    return res.status(200).json({
-      success: true,
-      message: "Student registerd successfully",
-      response: newStudent,
-    });
-  } catch (error) {
-    const errors = { backendError: String };
-    errors.backendError = error;
-    res.status(500).json(errors);
-  }
-};
+  },
+];
 
 export const getStudent = async (req, res) => {
   try {

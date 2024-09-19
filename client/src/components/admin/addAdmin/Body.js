@@ -24,6 +24,7 @@ const Body = () => {
     avatar: "",
     joiningYear: Date().split(" ")[3],
   });
+
   useEffect(() => {
     if (Object.keys(store.errors).length !== 0) {
       setError(store.errors);
@@ -33,7 +34,14 @@ const Body = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    setError({});
+    setError({}); // Clear previous errors
+
+    // Check if there's any error related to the avatar file type
+    if (error.avatarError) {
+      alert("Please upload a valid image file (JPEG, PNG, JPG) before submitting.");
+      return; // Prevent form submission if there's an avatar error
+    }
+
     setLoading(true);
     dispatch(addAdmin(value));
   };
@@ -65,6 +73,18 @@ const Body = () => {
     dispatch({ type: SET_ERRORS, payload: {} });
   }, []);
 
+  // Validate file type for avatar upload
+  const handleFileUpload = ({ base64, type }) => {
+    const allowedFileTypes = ["image/jpeg", "image/png", "image/jpg"];
+    if (!allowedFileTypes.includes(type)) {
+      setError({ ...error, avatarError: "Only JPEG, PNG, JPG files are allowed" });
+      setValue({ ...value, avatar: "" }); // Clear the avatar value if invalid
+    } else {
+      setValue({ ...value, avatar: base64 });
+      setError({ ...error, avatarError: "" }); // Clear the error if valid file
+    }
+  };
+
   return (
     <div className="flex-[0.8] mt-3">
       <div className="space-y-5">
@@ -72,13 +92,12 @@ const Body = () => {
           <EngineeringIcon />
           <h1>Add Admin</h1>
         </div>
-        <div className=" mr-10 bg-white flex flex-col rounded-xl ">
+        <div className="mr-10 bg-white flex flex-col rounded-xl">
           <form className={classes.adminForm0} onSubmit={handleSubmit}>
             <div className={classes.adminForm1}>
               <div className={classes.adminForm2l}>
                 <div className={classes.adminForm3}>
                   <h1 className={classes.adminLabel}>Name :</h1>
-
                   <input
                     placeholder="Full Name"
                     required
@@ -93,7 +112,6 @@ const Body = () => {
 
                 <div className={classes.adminForm3}>
                   <h1 className={classes.adminLabel}>DOB :</h1>
-
                   <input
                     placeholder="DD/MM/YYYY"
                     className={classes.adminInput}
@@ -105,9 +123,9 @@ const Body = () => {
                     }
                   />
                 </div>
+
                 <div className={classes.adminForm3}>
                   <h1 className={classes.adminLabel}>Email :</h1>
-
                   <input
                     placeholder="Email"
                     required
@@ -140,9 +158,9 @@ const Body = () => {
                     ))}
                   </Select>
                 </div>
+
                 <div className={classes.adminForm3}>
                   <h1 className={classes.adminLabel}>Contact Number :</h1>
-
                   <input
                     required
                     placeholder="Contact Number"
@@ -154,16 +172,17 @@ const Body = () => {
                     }
                   />
                 </div>
+
                 <div className={classes.adminForm3}>
                   <h1 className={classes.adminLabel}>Avatar :</h1>
-
                   <FileBase
                     type="file"
                     multiple={false}
-                    onDone={({ base64 }) =>
-                      setValue({ ...value, avatar: base64 })
-                    }
+                    onDone={handleFileUpload}
                   />
+                  {error.avatarError && (
+                    <p className="text-red-500">{error.avatarError}</p>
+                  )}
                 </div>
               </div>
             </div>
