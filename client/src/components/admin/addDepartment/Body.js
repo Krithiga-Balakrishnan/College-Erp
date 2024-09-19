@@ -21,6 +21,7 @@ const Body = () => {
     e.preventDefault();
     setError({});
     setLoading(true);
+    console.log('Adding Department:', department); 
     dispatch(addDepartment({ department }));
     setDepartment("");
   };

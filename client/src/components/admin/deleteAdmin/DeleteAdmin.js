@@ -4,9 +4,31 @@ import { getAllDepartment } from "../../../redux/actions/adminActions";
 import Header from "../Header";
 import Sidebar from "../Sidebar";
 import Body from "./Body";
+import { useNavigate } from 'react-router-dom';
+import jwtDecode from 'jwt-decode';
 
 const DeleteAdmin = () => {
   const dispatch = useDispatch();
+
+  const navigate = useNavigate();
+  // Extract token from localStorage
+  const user = JSON.parse(localStorage.getItem("user"));
+  let role;
+
+  if (user && user.token) {
+    // Decode the JWT token to get the role
+    const decodedToken = jwtDecode(user.token);
+    role = decodedToken.role; // This will give you the role
+    console.log('Decoded Token Role:', role);
+  }
+
+  useEffect(() => {
+    if (!role || role !== 'admin') {
+      navigate('/unauthorized'); // Redirect to unauthorized page if role is not faculty
+    }
+  }, [role, navigate]);
+
+
   useEffect(() => {
     dispatch(getAllDepartment());
   }, [dispatch]);
