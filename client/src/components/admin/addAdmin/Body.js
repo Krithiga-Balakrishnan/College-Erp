@@ -34,6 +34,8 @@ const Body = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    console.log('Submitting admin data:', value);
+    console.log('CSRF Token:', localStorage.getItem('csrfToken'));
     setError({}); // Clear previous errors
 
     // Check if there's any error related to the avatar file type
@@ -41,7 +43,7 @@ const Body = () => {
       alert("Please upload a valid image file (JPEG, PNG, JPG) before submitting.");
       return; // Prevent form submission if there's an avatar error
     }
-
+    
     setLoading(true);
     dispatch(addAdmin(value));
   };
@@ -63,6 +65,9 @@ const Body = () => {
         });
         dispatch({ type: SET_ERRORS, payload: {} });
         dispatch({ type: ADD_ADMIN, payload: false });
+      }else {
+        // Handle specific error cases if needed
+        setError(store.errors);
       }
     } else {
       setLoading(true);

@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios from "../../utils/axiosInstance";
 
 // const API = axios.create({ baseURL: process.env.REACT_APP_SERVER_URL });
 const API = axios.create({ baseURL: "http://localhost:5001/" });
@@ -21,7 +21,16 @@ export const adminUpdatePassword = (updatedPassword) =>
 
 export const getAllStudent = () => API.get("/api/admin/getallstudent");
 
-export const getAllFaculty = () => API.get("/api/admin/getallfaculty");
+export const getAllFaculty = () => {
+  const csrfToken = localStorage.getItem('csrfToken'); // Get the CSRF token
+  //const authToken = localStorage.getItem('authtoken'); // Get the Auth token
+  return API.get("/api/admin/getallfaculty", {
+    headers: {
+      'X-CSRF-Token': csrfToken, // Include CSRF token
+    },
+    withCredentials: true // Important for sending cookies
+  });
+};
 
 export const getAllAdmin = () => API.get("/api/admin/getalladmin");
 
@@ -31,7 +40,15 @@ export const getAllSubject = () => API.get("/api/admin/getallsubject");
 export const updateAdmin = (updatedAdmin) =>
   API.post("/api/admin/updateprofile", updatedAdmin);
 
-export const addAdmin = (admin) => API.post("/api/admin/addadmin", admin);
+export const addAdmin = (admin) =>{
+  const csrfToken = localStorage.getItem('csrfToken'); // Get the CSRF token
+  return API.post("/api/admin/addadmin", admin, {
+    headers: {
+      'X-CSRF-Token': csrfToken // Include CSRF token in the request
+    },
+    withCredentials: true // Important for sending cookies
+  });
+};
 export const createNotice = (notice) =>
   API.post("/api/admin/createnotice", notice);
 export const deleteAdmin = (data) => API.post("/api/admin/deleteadmin", data);

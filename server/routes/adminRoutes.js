@@ -44,7 +44,7 @@ router.get("/getalldepartment", auth, getAllDepartment);
 router.get("/getallsubject", auth, getAllSubject);
 router.get("/getalladmin", auth, getAllAdmin);
 router.post("/updateprofile", auth, checkRole('admin'), updateAdmin);
-router.post("/addadmin", auth, checkRole('admin'), addAdmin);
+router.post("/addadmin", auth, checkRole('admin'),csrfProtection, addAdmin);
 router.post("/adddepartment", auth, checkRole('admin'), addDepartment);
 router.post("/addfaculty", auth, checkRole('admin'), addFaculty);
 router.post("/getfaculty", auth, getFaculty);

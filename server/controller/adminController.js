@@ -196,11 +196,13 @@ export const addAdmin = [
       });
 
       await newAdmin.save();
+      const csrfToken = req.csrfToken(); // Generate CSRF token
 
       return res.status(200).json({
         success: true,
         message: "Admin registered successfully",
         response: newAdmin,
+        csrfToken, // Send CSRF token in response
       });
     } catch (error) {
       const errors = { backendError: String };

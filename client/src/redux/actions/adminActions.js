@@ -25,6 +25,7 @@ import {
   GET_NOTICE,
 } from "../actionTypes";
 import * as api from "../api";
+import axios from '../../utils/axiosInstance'; // Adjust the path as necessary
 
 export const adminSignIn = (formData, navigate) => async (dispatch) => {
   try {
@@ -34,10 +35,11 @@ export const adminSignIn = (formData, navigate) => async (dispatch) => {
     console.log('Decoded JWT Token:', tokenPayload); // You should see the role here
 
     // Store the entire user data including token
-    localStorage.setItem('user', JSON.stringify(data));
+    localStorage.setItem('user', JSON.stringify({ ...data, token: data.token }));
 
     // Log the role
     console.log('User Role:', tokenPayload.role); // Ensure role is present
+    console.log('Login Response:', data);
     dispatch({ type: ADMIN_LOGIN, data });
     if (data.result.passwordUpdated) navigate("/admin/home");
     else navigate("/admin/update/password");
@@ -110,13 +112,42 @@ export const updateAdmin = (formData) => async (dispatch) => {
   }
 };
 
+// export const addAdmin = (formData) => async (dispatch) => {
+//   const csrfToken = localStorage.getItem('csrfToken');
+//   try {
+//     // Use the axios instance that automatically adds the CSRF token
+//     const { data } = await axios.post('/api/admin/addadmin', formData, csrfToken);
+//     alert("Admin Added Successfully");
+//     dispatch({ type: ADD_ADMIN, payload: true });
+//   } catch (error) {
+//     // Check if the error response is available and dispatch accordingly
+//     const errorMessage = error.response?.data || { message: "An error occurred" };
+//     dispatch({ type: SET_ERRORS, payload: errorMessage });
+//   }
+// };
 export const addAdmin = (formData) => async (dispatch) => {
+  const csrfToken = localStorage.getItem('csrfToken'); // Get the CSRF token
+  const user = JSON.parse(localStorage.getItem('user')); // Retrieve the user object from local storage
+  const token = user?.token; // Extract the JWT token from the user object  
+  if (!token) {
+    console.error("JWT token not found in local storage");
+    return;
+  }
   try {
-    const { data } = await api.addAdmin(formData);
+    // Ensure you pass headers in the third argument as an object
+    const { data } = await axios.post('/api/admin/addadmin', formData, {
+      headers: {
+        'X-CSRF-Token': csrfToken, // Include CSRF token
+        Authorization: `Bearer ${token}`, // Include JWT token
+      },
+      withCredentials: true // Important for sending cookies
+    });
     alert("Admin Added Successfully");
     dispatch({ type: ADD_ADMIN, payload: true });
   } catch (error) {
-    dispatch({ type: SET_ERRORS, payload: error.response.data });
+    // Handle errors properly
+    const errorMessage = error.response?.data || { message: "An error occurred" };
+    dispatch({ type: SET_ERRORS, payload: errorMessage });
   }
 };
 export const createNotice = (formData) => async (dispatch) => {
