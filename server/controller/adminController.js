@@ -66,17 +66,21 @@ export const updatedPassword = async (req, res) => {
     }
     admin.password = hashedPassword;
     await admin.save();
+    const csrfToken = req.csrfToken(); // Generate CSRF token
     if (admin.passwordUpdated === false) {
       admin.passwordUpdated = true;
       await admin.save();
+      const csrfToken = req.csrfToken(); // Generate CSRF token
     }
 
     res.status(200).json({
       success: true,
       message: "Password updated successfully",
       response: admin,
+      csrfToken,
     });
   } catch (error) {
+    console.error("Error in updateAdminPassword controller:", error);
     const errors = { backendError: String };
     errors.backendError = error;
     res.status(500).json(errors);
@@ -274,14 +278,17 @@ export const createNotice = [
 
       // Save the new notice to the database
       await newNotice.save();
+      const csrfToken = req.csrfToken(); // Generate CSRF token
 
       return res.status(200).json({
         success: true,
         message: "Notice created successfully",
         response: newNotice,
+        csrfToken,
       });
     } catch (error) {
       // Handle backend errors
+      console.error("Error in createNotice controller:", error);
       return res.status(500).json({ backendError: error.message });
     }
   },
@@ -324,14 +331,17 @@ export const addDepartment = [
 
       // Save the new department to the database
       await newDepartment.save();
+      const csrfToken = req.csrfToken(); // Generate CSRF token
 
       return res.status(200).json({
         success: true,
         message: "Department added successfully",
         response: newDepartment,
+        csrfToken,
       });
     } catch (error) {
       // Handle backend errors
+      console.error("Error in addDepartment controller:", error);
       return res.status(500).json({ backendError: error.message });
     }
   },
@@ -378,6 +388,7 @@ export const addFaculty = [
 
       // Get department code from existing department
       const existingDepartment = await Department.findOne({ department });
+      let hashedPassword; 
       let departmentHelper = existingDepartment.departmentCode;
 
       // Generate a unique username for the faculty
@@ -397,6 +408,11 @@ export const addFaculty = [
 
       // Hash the date of birth to use as a temporary password
       const newDob = dob.split("-").reverse().join("-");
+      if (!newDob || typeof newDob !== 'string') {
+        return res.status(400).json({ message: "Invalid date of birth format" });
+      }
+
+      console.log("DOB before hashing:", newDob);
 
       try {
         hashedPassword = await bcrypt.hash(newDob, 10);
@@ -424,14 +440,16 @@ export const addFaculty = [
 
       // Save the new faculty to the database
       await newFaculty.save();
-
+      const csrfToken = req.csrfToken(); // Generate CSRF token
       return res.status(200).json({
         success: true,
         message: "Faculty registered successfully",
         response: newFaculty,
+        csrfToken,
       });
     } catch (error) {
       // Handle backend errors
+      console.error("Error in addFaculty controller:", error);
       return res.status(500).json({ backendError: error.message });
     }
   },
@@ -503,7 +521,7 @@ export const addSubject = [
       });
 
       await newSubject.save();
-
+      const csrfToken = req.csrfToken(); // Generate CSRF token
       // Find students in the same department and year and add the subject to their records
       const students = await Student.find({ department, year });
       if (students.length !== 0) {
@@ -517,9 +535,11 @@ export const addSubject = [
         success: true,
         message: "Subject added successfully",
         response: newSubject,
+        csrfToken,
       });
     } catch (error) {
       // Handle backend errors
+      console.error("Error in addSubject controller:", error);
       return res.status(500).json({ backendError: error.message });
     }
   },
@@ -573,7 +593,7 @@ export const deleteAdmin = async (req, res) => {
 
       await Admin.findOneAndDelete({ _id: admin });
     }
-    res.status(200).json({ message: "Admin Deleted" });
+    res.status(200).json({ message: "Admin Deleted"});
   } catch (error) {
     const errors = { backendError: String };
     errors.backendError = error;
@@ -748,7 +768,7 @@ export const addStudent = [
       });
 
       await newStudent.save();
-      const csrfToken = req.csrfToken(); // Generate CSRF token
+      // Generate CSRF token
 
       // Add relevant subjects for the student based on department and year
       const subjects = await Subject.find({ department, year });
@@ -759,6 +779,7 @@ export const addStudent = [
       }
 
       await newStudent.save();
+      const csrfToken = req.csrfToken(); 
 
       return res.status(200).json({
         success: true,

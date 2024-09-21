@@ -16,8 +16,15 @@ API.interceptors.request.use((req) => {
 
 export const adminSignIn = (formData) => API.post("/api/admin/login", formData, { withCredentials: true });
 
-export const adminUpdatePassword = (updatedPassword) =>
-  API.post("/api/admin/updatepassword", updatedPassword);
+export const adminUpdatePassword = (updatedPassword) =>{
+  const csrfToken = localStorage.getItem('csrfToken'); 
+  return API.post("/api/admin/updatepassword", updatedPassword, {
+    headers: {
+      'X-CSRF-Token': csrfToken // Include CSRF token in the request
+    },
+    withCredentials: true // Important for sending cookies
+  });
+};
 
 export const getAllStudent = () => API.get("/api/admin/getallstudent");
 
@@ -49,8 +56,15 @@ export const addAdmin = (admin) =>{
     withCredentials: true // Important for sending cookies
   });
 };
-export const createNotice = (notice) =>
-  API.post("/api/admin/createnotice", notice);
+export const createNotice = (notice) =>{
+  const csrfToken = localStorage.getItem('csrfToken'); 
+  return API.post("/api/admin/createnotice", notice, {
+    headers: {
+      'X-CSRF-Token': csrfToken // Include CSRF token in the request
+    },
+    withCredentials: true // Important for sending cookies
+  });
+};
 export const deleteAdmin = (data) => API.post("/api/admin/deleteadmin", data);
 export const deleteFaculty = (data) =>
   API.post("/api/admin/deletefaculty", data);
@@ -61,19 +75,48 @@ export const deleteSubject = (data) =>
 export const deleteDepartment = (data) =>
   API.post("/api/admin/deletedepartment", data);
 
-export const getAdmin = (admin) => API.post("/api/admin/getadmin", admin);
+export const getAdmin = (admin) => {
+  const csrfToken = localStorage.getItem('csrfToken'); 
+  return API.post("/api/admin/getadmin", admin, {
+    headers: {
+      'X-CSRF-Token': csrfToken // Include CSRF token in the request
+    },
+    withCredentials: true // Important for sending cookies
+  });
+};
 
-export const addDepartment = (department) =>
-  API.post("/api/admin/adddepartment", department);
+export const addDepartment = (department) =>{
+  const csrfToken = localStorage.getItem('csrfToken'); 
+  return API.post("/api/admin/adddepartment", department, {
+    headers: {
+      'X-CSRF-Token': csrfToken // Include CSRF token in the request
+    },
+    withCredentials: true // Important for sending cookies
+  });
+};
 
-export const addFaculty = (faculty) =>
-  API.post("/api/admin/addfaculty", faculty);
+export const addFaculty = (faculty) =>{
+  const csrfToken = localStorage.getItem('csrfToken'); 
+  return API.post("/api/admin/addfaculty", faculty, {
+    headers: {
+      'X-CSRF-Token': csrfToken // Include CSRF token in the request
+    },
+    withCredentials: true // Important for sending cookies
+  });
+};
 
 export const getFaculty = (department) =>
   API.post("/api/admin/getfaculty", department);
 
-export const addSubject = (subject) =>
-  API.post("/api/admin/addsubject", subject);
+export const addSubject = (subject) =>{
+  const csrfToken = localStorage.getItem('csrfToken'); 
+  return API.post("/api/admin/addsubject", subject, {
+    headers: {
+      'X-CSRF-Token': csrfToken // Include CSRF token in the request
+    },
+    withCredentials: true // Important for sending cookies
+  });
+};
 export const getSubject = (subject) =>
   API.post("/api/admin/getsubject", subject);
 

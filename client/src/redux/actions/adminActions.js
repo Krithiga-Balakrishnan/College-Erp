@@ -49,12 +49,33 @@ export const adminSignIn = (formData, navigate) => async (dispatch) => {
 };
 
 export const adminUpdatePassword = (formData, navigate) => async (dispatch) => {
+  const csrfToken = localStorage.getItem('csrfToken'); // Get the CSRF token
+  const user = JSON.parse(localStorage.getItem('user')); // Retrieve the user object from local storage
+  const token = user?.token; // Extract the JWT token from the user object
+  
+  if (!token) {
+    console.error("JWT token not found in local storage");
+    return;
+  }
   try {
-    const { data } = await api.adminUpdatePassword(formData);
+    const { data } = await axios.post('/api/admin/updatepassword', formData, {
+      headers: {
+        'X-CSRF-Token': csrfToken, // Include CSRF token
+        Authorization: `Bearer ${token}`, // Include JWT token
+      },
+      withCredentials: true // Important for sending cookies
+    });
+
+    // Update CSRF token in localStorage if included in response
+    if (data.csrfToken) {
+      localStorage.setItem('csrfToken', data.csrfToken);
+    }   
     dispatch({ type: UPDATE_PASSWORD, payload: true });
     alert("Password Updated");
     navigate("/admin/home");
   } catch (error) {
+    const errorMessage = error.response?.data || { message: "An error occurred" };
+    console.error("Error in updatePassword:", errorMessage); // Log the error for debugging
     dispatch({ type: SET_ERRORS, payload: error.response.data });
   }
 };
@@ -151,19 +172,61 @@ export const addAdmin = (formData) => async (dispatch) => {
   }
 };
 export const createNotice = (formData) => async (dispatch) => {
+  const csrfToken = localStorage.getItem('csrfToken'); // Get the CSRF token
+  const user = JSON.parse(localStorage.getItem('user')); // Retrieve the user object from local storage
+  const token = user?.token; // Extract the JWT token from the user object
+  
+  if (!token) {
+    console.error("JWT token not found in local storage");
+    return;
+  }
   try {
-    const { data } = await api.createNotice(formData);
+    const { data } = await  axios.post('/api/admin/createNotice',formData, {
+      headers: {
+        'X-CSRF-Token': csrfToken, // Include CSRF token
+        Authorization: `Bearer ${token}`, // Include JWT token
+      },
+      withCredentials: true // Important for sending cookies
+    });
+
+    // Update CSRF token in localStorage if included in response
+    if (data.csrfToken) {
+      localStorage.setItem('csrfToken', data.csrfToken);
+    }   
     alert("Notice Created Successfully");
     dispatch({ type: CREATE_NOTICE, payload: true });
   } catch (error) {
+    const errorMessage = error.response?.data || { message: "An error occurred" };
+    console.error("Error in addCreateNotice:", errorMessage); // Log the error for debugging
     dispatch({ type: SET_ERRORS, payload: error.response.data });
   }
 };
 export const getAdmin = (formData) => async (dispatch) => {
+  const csrfToken = localStorage.getItem('csrfToken'); // Get the CSRF token
+  const user = JSON.parse(localStorage.getItem('user')); // Retrieve the user object from local storage
+  const token = user?.token; // Extract the JWT token from the user object
+  
+  if (!token) {
+    console.error("JWT token not found in local storage");
+    return;
+  }
   try {
-    const { data } = await api.getAdmin(formData);
+    const { data } = await axios.post("/api/admin/getadmin",formData, {
+      headers: {
+        'X-CSRF-Token': csrfToken, // Include CSRF token
+        Authorization: `Bearer ${token}`, // Include JWT token
+      },
+      withCredentials: true // Important for sending cookies
+    });
+
+    // Update CSRF token in localStorage if included in response
+    if (data.csrfToken) {
+      localStorage.setItem('csrfToken', data.csrfToken);
+    }   
     dispatch({ type: GET_STUDENT, payload: data });
   } catch (error) {
+    const errorMessage = error.response?.data || { message: "An error occurred" };
+    console.error("Error in getAdmin:", errorMessage); // Log the error for debugging
     dispatch({ type: SET_ERRORS, payload: error.response.data });
   }
 };
@@ -213,21 +276,63 @@ export const deleteDepartment = (formData) => async (dispatch) => {
   }
 };
 export const addDepartment = (formData) => async (dispatch) => {
+  const csrfToken = localStorage.getItem('csrfToken'); // Get the CSRF token
+  const user = JSON.parse(localStorage.getItem('user')); // Retrieve the user object from local storage
+  const token = user?.token; // Extract the JWT token from the user object
+  
+  if (!token) {
+    console.error("JWT token not found in local storage");
+    return;
+  }
   try {
-    const { data } = await api.addDepartment(formData);
+    const { data } = await axios.post('/api/admin/adddepartment',formData, {
+      headers: {
+        'X-CSRF-Token': csrfToken, // Include CSRF token
+        Authorization: `Bearer ${token}`, // Include JWT token
+      },
+      withCredentials: true // Important for sending cookies
+    });
+
+    // Update CSRF token in localStorage if included in response
+    if (data.csrfToken) {
+      localStorage.setItem('csrfToken', data.csrfToken);
+    }    
     alert("Department Added Successfully");
     dispatch({ type: ADD_DEPARTMENT, payload: true });
   } catch (error) {
+    const errorMessage = error.response?.data || { message: "An error occurred" };
+    console.error("Error in addDepartment:", errorMessage); // Log the error for debugging
     dispatch({ type: SET_ERRORS, payload: error.response.data });
   }
 };
 
 export const addFaculty = (formData) => async (dispatch) => {
+  const csrfToken = localStorage.getItem('csrfToken'); // Get the CSRF token
+  const user = JSON.parse(localStorage.getItem('user')); // Retrieve the user object from local storage
+  const token = user?.token; // Extract the JWT token from the user object
+  
+  if (!token) {
+    console.error("JWT token not found in local storage");
+    return;
+  }
   try {
-    const { data } = await api.addFaculty(formData);
+    const { data } = await api.addFaculty(formData, {
+      headers: {
+        'X-CSRF-Token': csrfToken, // Include CSRF token
+        Authorization: `Bearer ${token}`, // Include JWT token
+      },
+      withCredentials: true // Important for sending cookies
+    });
+
+    // Update CSRF token in localStorage if included in response
+    if (data.csrfToken) {
+      localStorage.setItem('csrfToken', data.csrfToken);
+    }    
     alert("Faculty Added Successfully");
     dispatch({ type: ADD_FACULTY, payload: true });
   } catch (error) {
+    const errorMessage = error.response?.data || { message: "An error occurred" };
+    console.error("Error in addFaculty:", errorMessage); // Log the error for debugging
     dispatch({ type: SET_ERRORS, payload: error.response.data });
   }
 };
@@ -242,11 +347,32 @@ export const getFaculty = (department) => async (dispatch) => {
 };
 
 export const addSubject = (formData) => async (dispatch) => {
+  const csrfToken = localStorage.getItem('csrfToken'); // Get the CSRF token
+  const user = JSON.parse(localStorage.getItem('user')); // Retrieve the user object from local storage
+  const token = user?.token; // Extract the JWT token from the user object
+  
+  if (!token) {
+    console.error("JWT token not found in local storage");
+    return;
+  }
   try {
-    const { data } = await api.addSubject(formData);
+   // const { data } = await api.addSubject(formData);
+   const { data } = await axios.post('/api/admin/addsubject',formData, {
+    headers: {
+      'X-CSRF-Token': csrfToken, // Include CSRF token
+      Authorization: `Bearer ${token}`, // Include JWT token
+    },
+    withCredentials: true // Important for sending cookies
+  });
+  // Update CSRF token in localStorage if included in response
+  if (data.csrfToken) {
+    localStorage.setItem('csrfToken', data.csrfToken);
+  }    
     alert("Subject Added Successfully");
     dispatch({ type: ADD_SUBJECT, payload: true });
   } catch (error) {
+    const errorMessage = error.response?.data || { message: "An error occurred" };
+    console.error("Error in addSubject:", errorMessage); // Log the error for debugging
     dispatch({ type: SET_ERRORS, payload: error.response.data });
   }
 };
@@ -304,10 +430,33 @@ export const getStudent = (formData) => async (dispatch) => {
 };
 
 export const getNotice = (formData) => async (dispatch) => {
-  try {
-    const { data } = await api.getNotice(formData);
-    dispatch({ type: GET_NOTICE, payload: data });
-  } catch (error) {
-    dispatch({ type: SET_ERRORS, payload: error.response.data });
+   const csrfToken = localStorage.getItem('csrfToken');
+  const user = JSON.parse(localStorage.getItem('user')); 
+  const token = user?.token; // Ensure the JWT token is retrieved
+
+  if (!token) {
+    console.error("JWT token not found in local storage");
+    return;
   }
+//   try {
+//     const { data } = await api.getNotice(formData);
+//     dispatch({ type: GET_NOTICE, payload: data });
+//   } catch (error) {
+//     dispatch({ type: SET_ERRORS, payload: error.response.data });
+//   }
+// };
+try {
+  const { data } = await axios.post("/api/admin/getnotice", formData, {
+    headers: {
+      'X-CSRF-Token': csrfToken, // Include CSRF token
+      Authorization: `Bearer ${token}`, // Include JWT token for authorization
+    },
+    withCredentials: true, // Include credentials (cookies)
+  });
+
+  dispatch({ type: GET_NOTICE, payload: data });
+} catch (error) {
+  const errorMessage = error.response?.data || { message: "An error occurred" };
+  dispatch({ type: SET_ERRORS, payload: errorMessage });
+}
 };
