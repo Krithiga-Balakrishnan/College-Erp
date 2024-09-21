@@ -261,14 +261,38 @@ export const getSubject = (formData) => async (dispatch) => {
 };
 
 export const addStudent = (formData) => async (dispatch) => {
+  const csrfToken = localStorage.getItem('csrfToken'); // Get the CSRF token
+  const user = JSON.parse(localStorage.getItem('user')); // Retrieve the user object from local storage
+  const token = user?.token; // Extract the JWT token from the user object
+  
+  if (!token) {
+    console.error("JWT token not found in local storage");
+    return;
+  }
+
   try {
-    const { data } = await api.addStudent(formData);
+    const { data } = await axios.post('/api/admin/addstudent', formData, {
+      headers: {
+        'X-CSRF-Token': csrfToken, // Include CSRF token
+        Authorization: `Bearer ${token}`, // Include JWT token
+      },
+      withCredentials: true // Important for sending cookies
+    });
+
+    // Update CSRF token in localStorage if included in response
+    if (data.csrfToken) {
+      localStorage.setItem('csrfToken', data.csrfToken);
+    }
+
     alert("Student Added Successfully");
     dispatch({ type: ADD_STUDENT, payload: true });
   } catch (error) {
-    dispatch({ type: SET_ERRORS, payload: error.response.data });
+    const errorMessage = error.response?.data || { message: "An error occurred" };
+    console.error("Error in addStudent:", errorMessage); // Log the error for debugging
+    dispatch({ type: SET_ERRORS, payload: errorMessage });
   }
 };
+
 
 export const getStudent = (formData) => async (dispatch) => {
   try {

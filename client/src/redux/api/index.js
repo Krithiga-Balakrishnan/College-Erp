@@ -77,8 +77,15 @@ export const addSubject = (subject) =>
 export const getSubject = (subject) =>
   API.post("/api/admin/getsubject", subject);
 
-export const addStudent = (student) =>
-  API.post("/api/admin/addstudent", student);
+export const addStudent = (student) =>{
+  const csrfToken = localStorage.getItem('csrfToken'); // Get the CSRF token
+  return API.post("/api/admin/addstudent", student, {
+    headers: {
+      'X-CSRF-Token': csrfToken // Include CSRF token in the request
+    },
+    withCredentials: true // Important for sending cookies
+  });
+};
 
 export const getStudent = (student) =>
   API.post("/api/admin/getstudent", student);

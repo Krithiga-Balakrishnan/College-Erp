@@ -693,6 +693,7 @@ export const addStudent = [
       }
 
       const existingDepartment = await Department.findOne({ department });
+      let hashedPassword; 
       let departmentHelper = existingDepartment.departmentCode;
 
       const students = await Student.find({ department });
@@ -710,11 +711,16 @@ export const addStudent = [
       const username = components.join("");
 
       const newDob = dob.split("-").reverse().join("-");
-
+      if (!newDob || typeof newDob !== 'string') {
+        return res.status(400).json({ message: "Invalid date of birth format" });
+      }
+      
+      console.log("DOB before hashing:", newDob);
       // Hash the password (dob)
       try {
         hashedPassword = await bcrypt.hash(newDob, 10);
       } catch (hashError) {
+        console.error("Hashing Error:", hashError); // Log the exact error
         return res.status(500).json({ message: "Error hashing the password" });
       }
 
@@ -742,6 +748,7 @@ export const addStudent = [
       });
 
       await newStudent.save();
+      const csrfToken = req.csrfToken(); // Generate CSRF token
 
       // Add relevant subjects for the student based on department and year
       const subjects = await Subject.find({ department, year });
@@ -757,8 +764,10 @@ export const addStudent = [
         success: true,
         message: "Student registered successfully",
         response: newStudent,
+        csrfToken,
       });
     } catch (error) {
+      console.error("Error in addStudent controller:", error);
       return res.status(500).json({ backendError: error.message });
     }
   },

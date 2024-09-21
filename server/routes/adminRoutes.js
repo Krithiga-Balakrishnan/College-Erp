@@ -50,7 +50,7 @@ router.post("/addfaculty", auth, checkRole('admin'), addFaculty);
 router.post("/getfaculty", auth, getFaculty);
 router.post("/addsubject", auth, checkRole('admin'), addSubject);
 router.post("/getsubject", auth, getSubject);
-router.post("/addstudent", auth, checkRole('admin'), addStudent);
+router.post("/addstudent", auth, checkRole('admin'), csrfProtection, addStudent);
 router.post("/getstudent", auth, getStudent);
 router.post("/getnotice", auth, getNotice);
 router.post("/getadmin", auth, getAdmin);

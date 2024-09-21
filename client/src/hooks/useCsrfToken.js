@@ -1,4 +1,3 @@
-// useCsrfToken.js
 import { useEffect, useState } from 'react';
 import axios from '../utils/axiosInstance';
 
@@ -15,7 +14,7 @@ const useCsrfToken = () => {
         localStorage.setItem('csrfToken', token);
         setCsrfToken(token);
       } catch (error) {
-        console.error('Failed to fetch CSRF token', error);
+        console.error('Failed to fetch CSRF token', error.response?.data || error.message);
       }
     };
 
