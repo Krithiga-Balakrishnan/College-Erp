@@ -73,7 +73,7 @@ export const studentLogin = [
         const { email, name, picture } = googleData;
 
         // Fetch or create student in the database
-        let existingStudent = await Student.findOne({ email }).select('-password');
+        let existingStudent = await Student.findOne({ email });
 
         if (!existingStudent) {
           const existingDepartment = await Department.findOne({ department: 'General' });
@@ -81,7 +81,7 @@ export const studentLogin = [
           const currentYear = new Date().getFullYear();
 
           // Generate username
-          const lastStudent = await Student.findOne({ department: 'General' }).sort({ _id: -1 }).select('-password');
+          const lastStudent = await Student.findOne({ department: 'General' }).sort({ _id: -1 });
           const lastIdNumber = lastStudent ? parseInt(lastStudent.username.slice(-3)) : 0;
           const newIdNumber = lastIdNumber + 1;
           const helper = String(newIdNumber).padStart(3, '0'); // Helper for padding
@@ -117,7 +117,7 @@ export const studentLogin = [
       } else if (username && password) {
         const errors = { usernameError: null, passwordError: null };
 
-        const existingStudent = await Student.findOne({ username }).select('-password');
+        const existingStudent = await Student.findOne({ username });
         if (!existingStudent) {
           errors.usernameError = "Student doesn't exist.";
           return res.status(404).json(errors);
@@ -171,7 +171,7 @@ export const updatedPassword = [
         return res.status(400).json(mismatchError);
       }
 
-      const student = await Student.findOne({ email }).select('-password');
+      const student = await Student.findOne({ email });
       if (!student) {
         return res.status(404).json({ message: "Student not found" });
       }
