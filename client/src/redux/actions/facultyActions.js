@@ -10,6 +10,7 @@ import {
   ATTENDANCE_MARKED,
 } from "../actionTypes";
 import * as api from "../api";
+import axios from '../../utils/axiosInstance'; // Adjust the path as necessary
 
 export const facultySignIn = (formData, navigate) => async (dispatch) => {
   try {
@@ -106,6 +107,14 @@ export const uploadMark =
 export const markAttendance =
   (checkedValue, subjectName, department, year, section) =>
   async (dispatch) => {
+    const csrfToken = localStorage.getItem('csrfToken'); // Get the CSRF token
+    const user = JSON.parse(localStorage.getItem('user')); // Retrieve the user object from local storage
+    const token = user?.token; // Extract the JWT token from the user object
+    
+    if (!token) {
+      console.error("JWT token not found in local storage");
+      return;
+    }
     try {
       const formData = {
         selectedStudents: checkedValue,
@@ -114,10 +123,23 @@ export const markAttendance =
         year,
         section,
       };
-      const { data } = await api.markAttendance(formData);
+      const { data } = await axios.post("/api/faculty/markattendance",formData, {
+        headers: {
+          'X-CSRF-Token': csrfToken, // Include CSRF token
+          Authorization: `Bearer ${token}`, // Include JWT token
+        },
+        withCredentials: true // Important for sending cookies
+      });
+  
+      // Update CSRF token in localStorage if included in response
+      if (data.csrfToken) {
+        localStorage.setItem('csrfToken', data.csrfToken);
+      }  
       alert("Attendance Marked Successfully");
       dispatch({ type: ATTENDANCE_MARKED, payload: true });
     } catch (error) {
+      const errorMessage = error.response?.data || { message: "An error occurred" };
+      console.error("Error in markAttendance:", errorMessage); // Log the error for debugging  
       dispatch({ type: SET_ERRORS, payload: error.response.data });
     }
   };

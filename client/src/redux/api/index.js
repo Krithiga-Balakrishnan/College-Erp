@@ -42,7 +42,15 @@ export const getAllFaculty = () => {
 export const getAllAdmin = () => API.get("/api/admin/getalladmin");
 
 export const getAllDepartment = () => API.get("/api/admin/getalldepartment");
-export const getAllSubject = () => API.get("/api/admin/getallsubject");
+export const getAllSubject = () => {
+  const csrfToken = localStorage.getItem('csrfToken'); // Get the CSRF token
+  return API.get("/api/admin/getallsubject", {
+    headers: {
+      'X-CSRF-Token': csrfToken // Include CSRF token in the request
+    },
+    withCredentials: true // Important for sending cookies
+  });
+};
 
 export const updateAdmin = (updatedAdmin) =>
   API.post("/api/admin/updateprofile", updatedAdmin);
@@ -215,20 +223,55 @@ export const getTest = (test) => API.post("/api/faculty/gettest", test);
 export const getMarksStudent = (student) =>
   API.post("/api/faculty/getstudent", student);
 export const uploadMarks = (data) => API.post("/api/faculty/uploadmarks", data);
-export const markAttendance = (data) =>
-  API.post("/api/faculty/markattendance", data);
+export const markAttendance = (data) =>{
+  const csrfToken = localStorage.getItem('csrfToken'); // Get the CSRF token
+  return API.post("/api/faculty/markattendance", data, {
+    headers: {
+      'X-CSRF-Token': csrfToken // Include CSRF token in the request
+    },
+    withCredentials: true // Important for sending cookies
+  });
+};
 
 // Student
 
 export const studentSignIn = (formData) =>
   API.post("/api/student/login", formData, { withCredentials: true });
 
-export const studentUpdatePassword = (updatedPassword) =>
-  API.post("/api/student/updatepassword", updatedPassword);
+export const studentUpdatePassword = (updatedPassword) =>{
+  const csrfToken = localStorage.getItem('csrfToken'); // Get the CSRF token
+  return API.post("/api/student/updatepassword", updatedPassword, {
+    headers: {
+      'X-CSRF-Token': csrfToken // Include CSRF token in the request
+    },
+    withCredentials: true // Important for sending cookies
+  });
+};
 
-export const updateStudent = (updatedStudent) =>
-  API.post("/api/student/updateprofile", updatedStudent);
-export const getTestResult = (testResult) =>
-  API.post("/api/student/testresult", testResult);
-export const getAttendance = (attendance) =>
-  API.post("/api/student/attendance", attendance);
+export const updateStudent = (updatedStudent) =>{
+  const csrfToken = localStorage.getItem('csrfToken'); // Get the CSRF token
+  return API.post("/api/student/updateprofile", updatedStudent, {
+    headers: {
+      'X-CSRF-Token': csrfToken // Include CSRF token in the request
+    },
+    withCredentials: true // Important for sending cookies
+  });
+};
+export const getTestResult = (testResult) =>{
+  const csrfToken = localStorage.getItem('csrfToken'); // Get the CSRF token
+  return API.post("/api/student/testresult", testResult, {
+    headers: {
+      'X-CSRF-Token': csrfToken // Include CSRF token in the request
+    },
+    withCredentials: true // Important for sending cookies
+  });
+};
+export const getAttendance = (attendance) =>{
+  const csrfToken = localStorage.getItem('csrfToken'); // Get the CSRF token
+  return API.post("/api/student/attendance", attendance, {
+    headers: {
+      'X-CSRF-Token': csrfToken // Include CSRF token in the request
+    },
+    withCredentials: true // Important for sending cookies
+  });
+};

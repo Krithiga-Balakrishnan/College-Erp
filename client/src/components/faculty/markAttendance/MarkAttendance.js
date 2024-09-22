@@ -9,6 +9,7 @@ import {
 } from "../../../redux/actions/adminActions";
 import { useNavigate } from 'react-router-dom';
 import jwtDecode from 'jwt-decode';
+import useCsrfToken from "../../../hooks/useCsrfToken"; 
 
 const MarkAttendance = () => {
   const dispatch = useDispatch();
@@ -16,6 +17,7 @@ const MarkAttendance = () => {
   const navigate = useNavigate();
   // Extract token from localStorage
   const user = JSON.parse(localStorage.getItem("user"));
+  const csrfToken = useCsrfToken();
   let role;
 
   if (user && user.token) {

@@ -164,6 +164,7 @@ export const updatedPassword = async (req, res) => {
 
     student.password = hashedPassword;
     await student.save();
+    const csrfToken = req.csrfToken(); // Generate CSRF token
     if (student.passwordUpdated === false) {
       student.passwordUpdated = true;
       await student.save();
@@ -173,6 +174,7 @@ export const updatedPassword = async (req, res) => {
       success: true,
       message: "Password updated successfully",
       response: student,
+      csrfToken,
     });
   } catch (error) {
     res.status(500).json(error);
@@ -237,8 +239,9 @@ export const updateStudent = [
 
       // Save the updated student
       await updatedStudent.save();
+      const csrfToken = req.csrfToken(); // Generate CSRF token
 
-      res.status(200).json(updatedStudent);
+      res.status(200).json({student: updatedStudent,csrfToken});
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
@@ -275,8 +278,10 @@ export const testResult = async (req, res) => {
         result.push(temp);
       }
     }
+    const csrfToken = req.csrfToken(); // Generate CSRF token
 
-    res.status(200).json({ result });
+
+    res.status(200).json({ result,csrfToken });
   } catch (error) {
     res.status(500).json(error);
   }
@@ -287,13 +292,13 @@ export const attendance = async (req, res) => {
     const { department, year, section } = req.body;
     const errors = { notestError: String };
     const student = await Student.findOne({ department, year, section });
-
     const attendence = await Attendence.find({
       student: student._id,
     }).populate("subject");
     if (!attendence) {
       res.status(400).json({ message: "Attendence not found" });
     }
+    const csrfToken = req.csrfToken(); // Generate CSRF token
 
     res.status(200).json({
       result: attendence.map((att) => {
@@ -308,6 +313,7 @@ export const attendance = async (req, res) => {
         res.total = att.totalLecturesByFaculty;
         return res;
       }),
+      csrfToken,
     });
   } catch (error) {
     res.status(500).json(error);

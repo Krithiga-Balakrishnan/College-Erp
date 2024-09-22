@@ -28,6 +28,6 @@ router.post("/createtest", auth, checkRole('faculty'), createTest);
 router.post("/gettest", auth, checkRole('faculty'), getTest);
 router.post("/getstudent", auth, checkRole('faculty'), getStudent);
 router.post("/uploadmarks", auth, checkRole('faculty'), uploadMarks);
-router.post("/markattendance", auth, checkRole('faculty'), markAttendance);
+router.post("/markattendance", auth, checkRole('faculty'), csrfProtection,markAttendance);
 
 export default router;

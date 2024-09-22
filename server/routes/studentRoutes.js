@@ -19,9 +19,9 @@ const checkRole = (requiredRole) => (req, res, next) => {
 };
 
 router.post("/login",csrfProtection, studentLogin);
-router.post("/updatepassword", auth, checkRole('student'), updatedPassword);
-router.post("/updateprofile", auth, checkRole('student'), updateStudent);
-router.post("/testresult", auth, checkRole('student'), testResult);
-router.post("/attendance", auth, checkRole('student'), attendance);
+router.post("/updatepassword", auth, checkRole('student'), csrfProtection,updatedPassword);
+router.post("/updateprofile", auth, checkRole('student'), csrfProtection, updateStudent);
+router.post("/testresult", auth, checkRole('student'),csrfProtection, testResult);
+router.post("/attendance", auth, checkRole('student'), csrfProtection,attendance);
 
 export default router;

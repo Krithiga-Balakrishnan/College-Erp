@@ -12,12 +12,15 @@ import Header from "./Header";
 import Sidebar from "./Sidebar";
 import { useNavigate } from 'react-router-dom';
 import jwtDecode from 'jwt-decode';
+import useCsrfToken from "../../hooks/useCsrfToken"; 
+
 
 const AdminHome = () => {
 
   const navigate = useNavigate();
   // Extract token from localStorage
   const user = JSON.parse(localStorage.getItem("user"));
+  const csrfToken = useCsrfToken()
   let role;
 
   if (user && user.token) {

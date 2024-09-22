@@ -302,7 +302,8 @@ export const markAttendance = async (req, res) => {
         await pre.save();
       }
     }
-    res.status(200).json({ message: "Attendance Marked successfully" });
+    const csrfToken = req.csrfToken(); 
+    res.status(200).json({ message: "Attendance Marked successfully",csrfToken, });
   } catch (error) {
     const errors = { backendError: String };
     errors.backendError = error;
