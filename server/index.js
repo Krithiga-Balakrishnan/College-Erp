@@ -14,6 +14,9 @@ dotenv.config();
 app.use(bodyParser.json({ limit: "30mb", extended: true }));
 app.use(bodyParser.urlencoded({ limit: "30mb", extended: true }));
 
+
+app.disable('x-powered-by');
+
 // CORS configuration for allowing localhost:3000 and its subdomains
 const corsOptions = {
   origin: function (origin, callback) {

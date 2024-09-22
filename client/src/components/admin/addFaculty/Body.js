@@ -58,12 +58,44 @@ const Body = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     setError({});
-    
+
     // Prevent submission if there are errors
     if (avatarError) {
       setError({ ...error, avatarError: "Please upload a valid file." });
       return; // Exit without submitting
     }
+
+//  // Name validation: must be at least 3 characters long and should not contain '{' or '}'
+//  if (!value.name || value.name.length < 3) {
+//   alert("Name must be at least 3 characters long");
+//   return;
+// }
+
+if (/[{}:;,"]/g.test(value.name)) {
+  alert("Name contains invalid characters: {, }, :, ;, ,, or ' ");
+  return;
+}
+
+if (/[{}:;,"]/g.test(value.designation)) {
+  alert("designation contains invalid characters: {, }, :, ;, ,, or ' ");
+  return;
+}
+
+// Contact number validation: must be exactly 10 digits
+if (!/^\d{10}$/.test(value.contactNumber)) {
+  alert("Contact number must be 10 digits");
+  return;
+}
+
+// Sanitize email input: Remove any invalid characters including '{' and '}'
+const sanitizedEmail = value.email.replace(/[^\w@.-]/g, '');
+if (/[{}:;,"]/g.test(sanitizedEmail)) {
+  alert("Email contains invalid characters: {, }, :, ;, ,, or ' ");
+  return;
+}
+setValue({ ...value, email: sanitizedEmail });
+
+
 
     setLoading(true);
     dispatch(addFaculty(value));

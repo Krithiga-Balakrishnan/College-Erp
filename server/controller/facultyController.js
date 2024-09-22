@@ -9,39 +9,51 @@ import bcrypt from "bcryptjs";
 
 import { body, validationResult } from "express-validator";
 
-export const facultyLogin = async (req, res) => {
-  const { username, password } = req.body;
-  const errors = { usernameError: String, passwordError: String };
-  try {
-    const existingFaculty = await Faculty.findOne({ username });
-    if (!existingFaculty) {
-      errors.usernameError = "Faculty doesn't exist.";
-      return res.status(404).json(errors);
-    }
-    const isPasswordCorrect = await bcrypt.compare(
-      password,
-      existingFaculty.password
-    );
-    if (!isPasswordCorrect) {
-      errors.passwordError = "Invalid Credentials";
-      return res.status(404).json(errors);
-    }
+export const facultyLogin = [
+  // Validation and sanitization
+  body('username').trim().escape(),
+  body('password').trim().escape(),
 
-    const token = jwt.sign(
-      {
-        email: existingFaculty.email,
-        id: existingFaculty._id,
-        role: 'faculty'
-      },
-      process.env.JWT_SECRET,
-      { expiresIn: "1h" }
-    );
+  async (req, res) => {
+    try {
+      // Check for validation errors
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
 
-    res.status(200).json({ result: existingFaculty, token: token });
-  } catch (error) {
-    console.log(error);
-  }
-};
+      const { username, password } = req.body;
+      const errorsResponse = { usernameError: String, passwordError: String };
+
+      const existingFaculty = await Faculty.findOne({ username });
+      if (!existingFaculty) {
+        errorsResponse.usernameError = "Faculty doesn't exist.";
+        return res.status(404).json(errorsResponse);
+      }
+
+      const isPasswordCorrect = await bcrypt.compare(password, existingFaculty.password);
+      if (!isPasswordCorrect) {
+        errorsResponse.passwordError = "Invalid Credentials";
+        return res.status(404).json(errorsResponse);
+      }
+
+      const token = jwt.sign(
+        {
+          email: existingFaculty.email,
+          id: existingFaculty._id,
+          role: 'faculty'
+        },
+        process.env.JWT_SECRET,
+        { expiresIn: "1h" }
+      );
+
+      res.status(200).json({ result: existingFaculty, token });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ backendError: error.message });
+    }
+  },
+];
 
 export const updatedPassword = async (req, res) => {
   try {
@@ -53,7 +65,7 @@ export const updatedPassword = async (req, res) => {
       return res.status(400).json(errors);
     }
 
-    const faculty = await Faculty.findOne({ email });
+    const faculty = await Faculty.findOne({ email }).select('-password');
     let hashedPassword;
     try {
       hashedPassword = await bcrypt.hash(newPassword, 10);
@@ -100,7 +112,7 @@ export const updateFaculty = [
       const { name, dob, department, contactNumber, avatar, email, designation } = req.body;
 
       // Find the faculty by email
-      const updatedFaculty = await Faculty.findOne({ email });
+      const updatedFaculty = await Faculty.findOne({ email }).select('-password');
       if (!updatedFaculty) {
         return res.status(404).json({ error: "Faculty not found" });
       }
@@ -155,7 +167,7 @@ export const createTest = [
         year,
         section,
         test,
-      });
+      }).select('-password');
       if (existingTest) {
         testErrors.testError = "Given Test is already created";
         return res.status(400).json(testErrors);
@@ -205,7 +217,7 @@ export const getStudent = async (req, res) => {
   try {
     const { department, year, section } = req.body;
     const errors = { noStudentError: String };
-    const students = await Student.find({ department, year, section });
+    const students = await Student.find({ department, year, section }).select('-password');
     if (students.length === 0) {
       errors.noStudentError = "No Student Found";
       return res.status(404).json(errors);
@@ -262,13 +274,13 @@ export const markAttendance = async (req, res) => {
 
     const sub = await Subject.findOne({ subjectName });
 
-    const allStudents = await Student.find({ department, year, section });
+    const allStudents = await Student.find({ department, year, section }).select('-password');
 
     for (let i = 0; i < allStudents.length; i++) {
       const pre = await Attendence.findOne({
         student: allStudents[i]._id,
         subject: sub._id,
-      });
+      }).select('-password');
       if (!pre) {
         const attendence = new Attendence({
           student: allStudents[i]._id,
@@ -286,7 +298,7 @@ export const markAttendance = async (req, res) => {
       const pre = await Attendence.findOne({
         student: selectedStudents[a],
         subject: sub._id,
-      });
+      }).select('-password');
       if (!pre) {
         const attendence = new Attendence({
           student: selectedStudents[a],

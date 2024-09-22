@@ -5,6 +5,7 @@ const subjectSchema = new Schema({
     type: String,
     required: true,
     trim: true,
+    
   },
   subjectCode: {
     type: String,

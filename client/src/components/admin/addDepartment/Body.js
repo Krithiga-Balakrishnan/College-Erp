@@ -20,8 +20,15 @@ const Body = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     setError({});
+
+    
+    if (/[{}:;,"]/g.test(department)) {
+      alert("department contains invalid characters:  {, }, :, ;, ,, or '");
+   return;
+ }
     setLoading(true);
     console.log('Adding Department:', department); 
+
     dispatch(addDepartment({ department }));
     setDepartment("");
   };
@@ -56,7 +63,6 @@ const Body = () => {
               <div className="flex space-y-10 ">
                 <div className="flex space-x-3">
                   <h1 className={classes.adminLabel}>Department :</h1>
-
                   <input
                     placeholder="Department"
                     required

@@ -4,11 +4,13 @@ const facultySchema = mongoose.Schema({
   name: {
     type: String,
     required: true,
+    maxlength: [50, "Name must be at most 50 characters long"],
   },
   email: {
     type: String,
     required: true,
     unique: true,
+    maxlength: [50, "Name must be at most 50 characters long"],
   },
   avatar: {
     type: String,
@@ -18,6 +20,7 @@ const facultySchema = mongoose.Schema({
   },
   username: {
     type: String,
+    maxlength: [50, "Name must be at most 50 characters long"],
   },
   gender: {
     type: String,
@@ -25,6 +28,7 @@ const facultySchema = mongoose.Schema({
   designation: {
     type: String,
     required: true,
+    maxlength: [50, "Name must be at most 50 characters long"],
   },
   department: {
     type: String,
