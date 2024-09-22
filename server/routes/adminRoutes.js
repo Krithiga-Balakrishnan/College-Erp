@@ -47,18 +47,18 @@ router.post("/updateprofile", auth, checkRole('admin'), updateAdmin);
 router.post("/addadmin", auth, checkRole('admin'),csrfProtection, addAdmin);
 router.post("/adddepartment", auth, checkRole('admin'), csrfProtection, addDepartment);
 router.post("/addfaculty", auth, checkRole('admin'), csrfProtection, addFaculty);
-router.post("/getfaculty", auth, getFaculty);
+router.post("/getfaculty", auth,csrfProtection, getFaculty);
 router.post("/addsubject", auth, checkRole('admin'), csrfProtection, addSubject);
-router.post("/getsubject", auth, getSubject);
+router.post("/getsubject", auth, csrfProtection, getSubject);
 router.post("/addstudent", auth, checkRole('admin'), csrfProtection, addStudent);
-router.post("/getstudent", auth, getStudent);
-router.post("/getnotice", auth, getNotice);
+router.post("/getstudent", auth,csrfProtection, getStudent);
+router.post("/getnotice", auth, csrfProtection,getNotice);
 router.post("/getadmin", auth,csrfProtection, getAdmin);
-router.post("/deleteadmin", auth, checkRole('admin'), deleteAdmin);
-router.post("/deletefaculty", auth, checkRole('admin'), deleteFaculty);
-router.post("/deletestudent", auth, checkRole('admin'), deleteStudent);
-router.post("/deletedepartment", auth, checkRole('admin'), deleteDepartment);
-router.post("/deletesubject", auth, checkRole('admin'), deleteSubject);
+router.post("/deleteadmin", auth, checkRole('admin'),csrfProtection, deleteAdmin);
+router.post("/deletefaculty", auth, checkRole('admin'),csrfProtection, deleteFaculty);
+router.post("/deletestudent", auth, checkRole('admin'), csrfProtection,deleteStudent);
+router.post("/deletedepartment", auth, checkRole('admin'),csrfProtection, deleteDepartment);
+router.post("/deletesubject", auth, checkRole('admin'), csrfProtection,deleteSubject);
 
 
 

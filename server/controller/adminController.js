@@ -460,11 +460,12 @@ export const getFaculty = async (req, res) => {
     const { department } = req.body;
     const errors = { noFacultyError: String };
     const faculties = await Faculty.find({ department });
+    const csrfToken = req.csrfToken(); // Generate CSRF token
     if (faculties.length === 0) {
       errors.noFacultyError = "No Faculty Found";
       return res.status(404).json(errors);
     }
-    res.status(200).json({ result: faculties });
+    res.status(200).json({ result: faculties,csrfToken });
   } catch (error) {
     const errors = { backendError: String };
     errors.backendError = error;
@@ -475,11 +476,12 @@ export const getNotice = async (req, res) => {
   try {
     const errors = { noNoticeError: String };
     const notices = await Notice.find({});
+    const csrfToken = req.csrfToken(); // Generate CSRF token
     if (notices.length === 0) {
       errors.noNoticeError = "No Notice Found";
       return res.status(404).json(errors);
     }
-    res.status(200).json({ result: notices });
+    res.status(200).json({ result: notices,csrfToken });
   } catch (error) {
     const errors = { backendError: String };
     errors.backendError = error;
@@ -553,11 +555,12 @@ export const getSubject = async (req, res) => {
     const errors = { noSubjectError: String };
 
     const subjects = await Subject.find({ department, year });
+    const csrfToken = req.csrfToken(); // Generate CSRF token
     if (subjects.length === 0) {
       errors.noSubjectError = "No Subject Found";
       return res.status(404).json(errors);
     }
-    res.status(200).json({ result: subjects });
+    res.status(200).json({ result: subjects,csrfToken});
   } catch (error) {
     const errors = { backendError: String };
     errors.backendError = error;
@@ -592,11 +595,13 @@ export const deleteAdmin = async (req, res) => {
       var admin = admins[i];
 
       await Admin.findOneAndDelete({ _id: admin });
+      const csrfToken = req.csrfToken(); // Generate CSRF token
     }
-    res.status(200).json({ message: "Admin Deleted"});
+    res.status(200).json({ message: "Admin Deleted", csrfToken,});
   } catch (error) {
     const errors = { backendError: String };
     errors.backendError = error;
+    console.error("Error in deleteAdmin controller:", error);
     res.status(500).json(errors);
   }
 };
@@ -608,8 +613,9 @@ export const deleteFaculty = async (req, res) => {
       var faculty = faculties[i];
 
       await Faculty.findOneAndDelete({ _id: faculty });
+      const csrfToken = req.csrfToken(); // Generate CSRF token
     }
-    res.status(200).json({ message: "Faculty Deleted" });
+    res.status(200).json({ message: "Faculty Deleted",csrfToken });
   } catch (error) {
     const errors = { backendError: String };
     errors.backendError = error;
@@ -624,8 +630,9 @@ export const deleteStudent = async (req, res) => {
       var student = students[i];
 
       await Student.findOneAndDelete({ _id: student });
+      const csrfToken = req.csrfToken(); // Generate CSRF token
     }
-    res.status(200).json({ message: "Student Deleted" });
+    res.status(200).json({ message: "Student Deleted",csrfToken });
   } catch (error) {
     const errors = { backendError: String };
     errors.backendError = error;
@@ -640,8 +647,9 @@ export const deleteSubject = async (req, res) => {
       var subject = subjects[i];
 
       await Subject.findOneAndDelete({ _id: subject });
+      const csrfToken = req.csrfToken(); // Generate CSRF token
     }
-    res.status(200).json({ message: "Subject Deleted" });
+    res.status(200).json({ message: "Subject Deleted",csrfToken });
   } catch (error) {
     const errors = { backendError: String };
     errors.backendError = error;
@@ -654,8 +662,8 @@ export const deleteDepartment = async (req, res) => {
     const { department } = req.body;
 
     await Department.findOneAndDelete({ department });
-
-    res.status(200).json({ message: "Department Deleted" });
+    const csrfToken = req.csrfToken(); // Generate CSRF token
+    res.status(200).json({ message: "Department Deleted",csrfToken, });
   } catch (error) {
     const errors = { backendError: String };
     errors.backendError = error;
@@ -800,13 +808,13 @@ export const getStudent = async (req, res) => {
     const { department, year, section } = req.body;
     const errors = { noStudentError: String };
     const students = await Student.find({ department, year });
-
+    const csrfToken = req.csrfToken(); // Generate CSRF token
     if (students.length === 0) {
       errors.noStudentError = "No Student Found";
       return res.status(404).json(errors);
     }
 
-    res.status(200).json({ result: students });
+    res.status(200).json({ result: students ,csrfToken});
   } catch (error) {
     const errors = { backendError: String };
     errors.backendError = error;
