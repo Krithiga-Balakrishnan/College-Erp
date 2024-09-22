@@ -37,7 +37,7 @@ const FacultyLogin = () => {
     e.preventDefault();
     setLoading(true);
     dispatch(
-      facultySignIn({ username: username, password: password }, navigate)
+      facultySignIn({ username: username, password: password,_csrf: csrfToken }, navigate)
     );
   };
 

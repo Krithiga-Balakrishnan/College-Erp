@@ -38,56 +38,166 @@ export const facultySignIn = (formData, navigate) => async (dispatch) => {
 
 export const facultyUpdatePassword =
   (formData, navigate) => async (dispatch) => {
+    const csrfToken = localStorage.getItem('csrfToken'); // Get the CSRF token
+  const user = JSON.parse(localStorage.getItem('user')); // Retrieve the user object from local storage
+  const token = user?.token; // Extract the JWT token from the user object
+  if (!token) {
+    console.error("JWT token not found in local storage");
+    return;
+  }
     try {
-      const { data } = await api.facultyUpdatePassword(formData);
+      const { data } = await axios.post("/api/faculty/updatepassword", formData, {
+        headers: {
+          'X-CSRF-Token': csrfToken, // Include CSRF token
+          Authorization: `Bearer ${token}`, // Include JWT token
+        },
+        withCredentials: true // Important for sending cookies
+      });
+  
+      // Update CSRF token in localStorage if included in response
+      if (data.csrfToken) {
+        localStorage.setItem('csrfToken', data.csrfToken);
+      }  
       dispatch({ type: UPDATE_PASSWORD, payload: true });
       alert("Password Updated");
       navigate("/faculty/home");
     } catch (error) {
+      const errorMessage = error.response?.data || { message: "An error occurred" };
+      console.error("Error in updateFacultyPassword:", errorMessage); // Log the error for debugging    
       dispatch({ type: SET_ERRORS, payload: error.response.data });
     }
   };
 
 export const updateFaculty = (formData) => async (dispatch) => {
+  const csrfToken = localStorage.getItem('csrfToken'); // Get the CSRF token
+  const user = JSON.parse(localStorage.getItem('user')); // Retrieve the user object from local storage
+  const token = user?.token; // Extract the JWT token from the user object
+  if (!token) {
+    console.error("JWT token not found in local storage");
+    return;
+  }
   try {
-    const { data } = await api.updateFaculty(formData);
+    const { data } = await axios.post("/api/faculty/updateprofile",formData, {
+      headers: {
+        'X-CSRF-Token': csrfToken, // Include CSRF token
+        Authorization: `Bearer ${token}`, // Include JWT token
+      },
+      withCredentials: true // Important for sending cookies
+    });
+
+    // Update CSRF token in localStorage if included in response
+    if (data.csrfToken) {
+      localStorage.setItem('csrfToken', data.csrfToken);
+    }  
     dispatch({ type: UPDATE_FACULTY, payload: true });
   } catch (error) {
+    const errorMessage = error.response?.data || { message: "An error occurred" };
+    console.error("Error in updateFaculty:", errorMessage); // Log the error for debugging  
     dispatch({ type: SET_ERRORS, payload: error.response.data });
   }
 };
 
 export const createTest = (formData) => async (dispatch) => {
+  const csrfToken = localStorage.getItem('csrfToken'); // Get the CSRF token
+    const user = JSON.parse(localStorage.getItem('user')); // Retrieve the user object from local storage
+    const token = user?.token; // Extract the JWT token from the user object
+    
+    if (!token) {
+      console.error("JWT token not found in local storage");
+      return;
+    }
   try {
-    const { data } = await api.createTest(formData);
-    alert("Test Created Successfully");
+    const { data } = await axios.post("/api/faculty/createtest",formData, {
+      headers: {
+        'X-CSRF-Token': csrfToken, // Include CSRF token
+        Authorization: `Bearer ${token}`, // Include JWT token
+      },
+      withCredentials: true // Important for sending cookies
+    });
 
+    // Update CSRF token in localStorage if included in response
+    if (data.csrfToken) {
+      localStorage.setItem('csrfToken', data.csrfToken);
+    }  
+    alert("Test Created Successfully");
     dispatch({ type: ADD_TEST, payload: true });
   } catch (error) {
+    const errorMessage = error.response?.data || { message: "An error occurred" };
+    console.error("Error in createTest:", errorMessage); // Log the error for debugging  
     dispatch({ type: SET_ERRORS, payload: error.response.data });
   }
 };
 
 export const getTest = (formData) => async (dispatch) => {
+  const csrfToken = localStorage.getItem('csrfToken'); // Get the CSRF token
+  const user = JSON.parse(localStorage.getItem('user')); // Retrieve the user object from local storage
+  const token = user?.token; // Extract the JWT token from the user object
+  
+  if (!token) {
+    console.error("JWT token not found in local storage");
+    return;
+  }
   try {
-    const { data } = await api.getTest(formData);
+    const { data } = await api.getTest(formData, {
+      headers: {
+        'X-CSRF-Token': csrfToken, // Include CSRF token
+        Authorization: `Bearer ${token}`, // Include JWT token
+      },
+      withCredentials: true // Important for sending cookies
+    });
+
+    // Update CSRF token in localStorage if included in response
+    if (data.csrfToken) {
+      localStorage.setItem('csrfToken', data.csrfToken);
+    }  
     dispatch({ type: GET_TEST, payload: data });
   } catch (error) {
+    const errorMessage = error.response?.data || { message: "An error occurred" };
+    console.error("Error in getTest:", errorMessage); // Log the error for debugging  
     dispatch({ type: SET_ERRORS, payload: error.response.data });
   }
 };
 
 export const getStudent = (formData) => async (dispatch) => {
+  const csrfToken = localStorage.getItem('csrfToken'); // Get the CSRF token
+  const user = JSON.parse(localStorage.getItem('user')); // Retrieve the user object from local storage
+  const token = user?.token; // Extract the JWT token from the user object
+  
+  if (!token) {
+    console.error("JWT token not found in local storage");
+    return;
+  }
   try {
-    const { data } = await api.getMarksStudent(formData);
+    const { data } = await api.getMarksStudent(formData, {
+      headers: {
+        'X-CSRF-Token': csrfToken, // Include CSRF token
+        Authorization: `Bearer ${token}`, // Include JWT token
+      },
+      withCredentials: true // Important for sending cookies
+    });
+
+    // Update CSRF token in localStorage if included in response
+    if (data.csrfToken) {
+      localStorage.setItem('csrfToken', data.csrfToken);
+    }  
     dispatch({ type: GET_STUDENT, payload: data });
   } catch (error) {
+    const errorMessage = error.response?.data || { message: "An error occurred" };
+    console.error("Error in getStudent  :", errorMessage); // Log the error for debugging  
     dispatch({ type: SET_ERRORS, payload: error.response.data });
   }
 };
 
 export const uploadMark =
   (marks, department, section, year, test) => async (dispatch) => {
+    const csrfToken = localStorage.getItem('csrfToken'); // Get the CSRF token
+    const user = JSON.parse(localStorage.getItem('user')); // Retrieve the user object from local storage
+    const token = user?.token; // Extract the JWT token from the user object
+    
+    if (!token) {
+      console.error("JWT token not found in local storage");
+      return;
+    }
     try {
       const formData = {
         marks,
@@ -96,10 +206,23 @@ export const uploadMark =
         year,
         test,
       };
-      const { data } = await api.uploadMarks(formData);
+      const { data } = await api.uploadMarks(formData, {
+        headers: {
+          'X-CSRF-Token': csrfToken, // Include CSRF token
+          Authorization: `Bearer ${token}`, // Include JWT token
+        },
+        withCredentials: true // Important for sending cookies
+      });
+  
+      // Update CSRF token in localStorage if included in response
+      if (data.csrfToken) {
+        localStorage.setItem('csrfToken', data.csrfToken);
+      }  
       alert("Marks Uploaded Successfully");
       dispatch({ type: MARKS_UPLOADED, payload: true });
     } catch (error) {
+      const errorMessage = error.response?.data || { message: "An error occurred" };
+      console.error("Error in uploadMark:", errorMessage); // Log the error for debugging    
       dispatch({ type: SET_ERRORS, payload: error.response.data });
     }
   };

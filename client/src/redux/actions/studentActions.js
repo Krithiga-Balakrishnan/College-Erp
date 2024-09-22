@@ -137,6 +137,8 @@ export const getTestResult =
       }  
       dispatch({ type: TEST_RESULT, payload: data });
     } catch (error) {
+      const errorMessage = error.response?.data || { message: "An error occurred" };
+      console.error("Error in getTestResult:", errorMessage); // Log the error for debugging  
       dispatch({ type: SET_ERRORS, payload: error.response.data });
     }
   };

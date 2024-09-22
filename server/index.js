@@ -54,9 +54,9 @@ app.use(csrfProtection);
 // Middleware to log the CSRF token for debugging
 app.use((req, res, next) => {
   console.log('Headers:', req.headers); // Log all incoming headers
-  console.log("CSRF Token:", req.csrfToken()); // Log the CSRF token to the console
+  console.log("CSRF Token Index:", req.csrfToken()); // Log the CSRF token to the console
   console.log('Incoming request:', req.method, req.path);
-  console.log('CSRF Token:', req.headers['x-csrf-token']); 
+  console.log('CSRF Token Index headers:', req.headers['x-csrf-token']); 
   next();
 });
 

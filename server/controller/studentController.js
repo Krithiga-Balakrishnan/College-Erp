@@ -168,6 +168,7 @@ export const updatedPassword = async (req, res) => {
     if (student.passwordUpdated === false) {
       student.passwordUpdated = true;
       await student.save();
+      const csrfToken = req.csrfToken(); // Generate CSRF token
     }
 
     res.status(200).json({

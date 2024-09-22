@@ -85,6 +85,7 @@ const Body = () => {
               <div className="flex px-3">
                 {open && (
                   <ReplyIcon
+
                     onClick={() => setOpen(false)}
                     className="cursor-pointer"
                   />
@@ -97,6 +98,7 @@ const Body = () => {
                 {!open ? (
                   notices?.map((notice, idx) => (
                     <div
+                    key={notice._id} 
                       onClick={() => {
                         setOpen(true);
                         setOpenNotice(notice);

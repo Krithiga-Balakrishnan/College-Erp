@@ -590,13 +590,15 @@ export const getAdmin = async (req, res) => {
 export const deleteAdmin = async (req, res) => {
   try {
     const admins = req.body;
+    let csrfToken = req.csrfToken(); // Generate CSRF token outside the loop
     const errors = { noAdminError: String };
     for (var i = 0; i < admins.length; i++) {
       var admin = admins[i];
 
       await Admin.findOneAndDelete({ _id: admin });
-      const csrfToken = req.csrfToken(); // Generate CSRF token
+     
     }
+    
     res.status(200).json({ message: "Admin Deleted", csrfToken,});
   } catch (error) {
     const errors = { backendError: String };
@@ -613,8 +615,8 @@ export const deleteFaculty = async (req, res) => {
       var faculty = faculties[i];
 
       await Faculty.findOneAndDelete({ _id: faculty });
-      const csrfToken = req.csrfToken(); // Generate CSRF token
     }
+    const csrfToken = req.csrfToken(); // Generate CSRF token
     res.status(200).json({ message: "Faculty Deleted",csrfToken });
   } catch (error) {
     const errors = { backendError: String };
@@ -625,12 +627,12 @@ export const deleteFaculty = async (req, res) => {
 export const deleteStudent = async (req, res) => {
   try {
     const students = req.body;
+    const csrfToken = req.csrfToken(); // Generate CSRF token
     const errors = { noStudentError: String };
     for (var i = 0; i < students.length; i++) {
       var student = students[i];
 
       await Student.findOneAndDelete({ _id: student });
-      const csrfToken = req.csrfToken(); // Generate CSRF token
     }
     res.status(200).json({ message: "Student Deleted",csrfToken });
   } catch (error) {
@@ -642,12 +644,12 @@ export const deleteStudent = async (req, res) => {
 export const deleteSubject = async (req, res) => {
   try {
     const subjects = req.body;
+    const csrfToken = req.csrfToken(); // Generate CSRF token
     const errors = { noSubjectError: String };
     for (var i = 0; i < subjects.length; i++) {
       var subject = subjects[i];
 
       await Subject.findOneAndDelete({ _id: subject });
-      const csrfToken = req.csrfToken(); // Generate CSRF token
     }
     res.status(200).json({ message: "Subject Deleted",csrfToken });
   } catch (error) {

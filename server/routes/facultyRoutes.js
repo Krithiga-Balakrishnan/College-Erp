@@ -22,12 +22,12 @@ const checkRole = (requiredRole) => (req, res, next) => {
 };
 
 router.post("/login", csrfProtection,facultyLogin);
-router.post("/updatepassword", auth, checkRole('faculty'), updatedPassword);
-router.post("/updateprofile", auth, checkRole('faculty'), updateFaculty);
-router.post("/createtest", auth, checkRole('faculty'), createTest);
-router.post("/gettest", auth, checkRole('faculty'), getTest);
-router.post("/getstudent", auth, checkRole('faculty'), getStudent);
-router.post("/uploadmarks", auth, checkRole('faculty'), uploadMarks);
+router.post("/updatepassword", auth, checkRole('faculty'),csrfProtection, updatedPassword);
+router.post("/updateprofile", auth, checkRole('faculty'),csrfProtection, updateFaculty);
+router.post("/createtest", auth, checkRole('faculty'), csrfProtection,createTest);
+router.post("/gettest", auth, checkRole('faculty'),csrfProtection, getTest);
+router.post("/getstudent", auth, checkRole('faculty'),csrfProtection, getStudent);
+router.post("/uploadmarks", auth, checkRole('faculty'),csrfProtection, uploadMarks);
 router.post("/markattendance", auth, checkRole('faculty'), csrfProtection,markAttendance);
 
 export default router;

@@ -261,7 +261,7 @@ export const deleteAdmin = (formData) => async (dispatch) => {
     return;
   }
   try {
-    const { data } = await axios.post("/api/admin/deleteadmin", formData, {
+    const { data } = await axios.post("/api/admin/deleteadmin",formData, {
       headers: {
         'X-CSRF-Token': csrfToken, // Include CSRF token
         Authorization: `Bearer ${token}`, // Include JWT token
@@ -272,7 +272,7 @@ export const deleteAdmin = (formData) => async (dispatch) => {
     // Update CSRF token in localStorage if included in response
     if (data.csrfToken) {
       localStorage.setItem('csrfToken', data.csrfToken);
-    }   
+    }  
     alert("Admin Deleted");
     dispatch({ type: DELETE_ADMIN, payload: true });
   } catch (error) {
