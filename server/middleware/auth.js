@@ -39,7 +39,7 @@ import jwt from "jsonwebtoken";
 //   };
 // };
 
-const auth = async (req, res, next) => {
+const auth = (requiredRole) => async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization; 
     if (!authHeader) {
@@ -56,13 +56,17 @@ const auth = async (req, res, next) => {
 
     // Attach the userId and userRole to the request object
     req.userId = decodedData?.id;
-    req.userRole = decodedData?.role; // Extract role from decoded token
-    console.log("User Role:", req.userRole); // This will log the user's role
+    req.userRole = decodedData?.role;
+
+    // Check for required role
+    if (requiredRole && req.userRole !== requiredRole) {
+      return res.status(403).json({ message: "Forbidden: Insufficient Permissions from auth" });
+    }
 
     next();
   } catch (error) {
     console.log("Authentication Error:", error.message);
-    return res.status(401).json({ message: "Unauthorized" }); // Respond with an error
+    return res.status(401).json({ message: "Unauthorized" });
   }
 };
 

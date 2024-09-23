@@ -11,17 +11,10 @@ import csrfProtection from "../middleware/csrfMiddleware.js";
 
 const router = express.Router();
 
-const checkRole = (requiredRole) => (req, res, next) => {
-  if (req.userRole !== requiredRole) {
-    return res.status(403).json({ message: "Forbidden: Insufficient Permissions" });
-  }
-  next();
-};
-
 router.post("/login",csrfProtection, studentLogin);
-router.post("/updatepassword", auth, checkRole('student'), csrfProtection,updatedPassword);
-router.post("/updateprofile", auth, checkRole('student'), csrfProtection, updateStudent);
-router.post("/testresult", auth, checkRole('student'),csrfProtection, testResult);
-router.post("/attendance", auth, checkRole('student'), csrfProtection,attendance);
+router.post("/updatepassword", auth('student'), csrfProtection,updatedPassword);
+router.post("/updateprofile", auth('student'),csrfProtection, updateStudent);
+router.post("/testresult", auth('student'), csrfProtection,testResult);
+router.post("/attendance", auth('student'), csrfProtection,attendance);
 
 export default router;
