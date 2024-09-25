@@ -258,8 +258,9 @@ export const uploadMarks = async (req, res) => {
         marks: marks[i].value,
       });
       await newMarks.save();
-      const csrfToken = req.csrfToken(); // Generate CSRF token
     }
+    const csrfToken = req.csrfToken();
+    console.log("CSRF Token generated:", csrfToken);
     res.status(200).json({ message: "Marks uploaded successfully" ,csrfToken});
   } catch (error) {
     const errors = { backendError: String };
