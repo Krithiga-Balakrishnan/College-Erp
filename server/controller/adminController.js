@@ -435,7 +435,6 @@ export const addFaculty = [
       var components = ["FAC", date.getFullYear(), departmentHelper, helper];
    // Hash the password
    var username = components.join("");
-   let hashedPassword;
    const newDob = dob.split("-").reverse().join("-");
    try {
      hashedPassword = await bcrypt.hash(newDob, 10);
