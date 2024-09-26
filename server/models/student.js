@@ -4,11 +4,13 @@ const studentSchema = new Schema({
   name: {
     type: String,
     required: true,
+    maxlength: [50, "Name must be at most 50 characters long"],
   },
   email: {
     type: String,
     required: true,
     unique: true,
+    maxlength: [50, "Name must be at most 50 characters long"],
   },
   avatar: {
     type: String,
@@ -33,12 +35,15 @@ const studentSchema = new Schema({
   },
   fatherName: {
     type: String,
+    maxlength: [50, "fatherName must be at most 50 characters long"],
   },
   motherName: {
     type: String,
+    maxlength: [50, "motherName must be at most 50 characters long"],
   },
   department: {
-    type: String
+    type: String,
+    maxlength: [50, "department must be at most 50 characters long"],
   },
   section: {
     type: String

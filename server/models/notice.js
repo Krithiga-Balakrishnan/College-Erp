@@ -4,6 +4,7 @@ const noticeSchema = mongoose.Schema({
   topic: {
     type: String,
     require: true,
+    maxlength: [50, "Name must be at most 50 characters long"],
   },
   date: {
     type: String,
@@ -12,10 +13,12 @@ const noticeSchema = mongoose.Schema({
   content: {
     type: String,
     require: true,
+    maxlength: [500, "Name must be at most 50 characters long"],
   },
   from: {
     type: String,
     require: true,
+    maxlength: [50, "Name must be at most 50 characters long"],
   },
   noticeFor: {
     type: String,

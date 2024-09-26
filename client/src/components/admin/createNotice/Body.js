@@ -31,6 +31,10 @@ const Body = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     setError({});
+
+
+
+    
     setLoading(true);
     dispatch(createNotice(value));
   };

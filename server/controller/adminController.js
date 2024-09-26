@@ -9,76 +9,105 @@ import bcrypt from "bcryptjs";
 import { body, validationResult } from "express-validator";
 
 
-export const adminLogin =
+export const adminLogin = [
+  // Validation and sanitization
+  body('username').trim().escape(),
+  body('password').trim().escape(),
+
   async (req, res) => {
-  const { username, password } = req.body;
-  const errors = { usernameError: String, passwordError: String };
-  try {
-    const existingAdmin = await Admin.findOne({ username });
-    if (!existingAdmin) {
-      errors.usernameError = "Admin doesn't exist.";
-      return res.status(404).json(errors);
-    }
-    const isPasswordCorrect = await bcrypt.compare(
-      password,
-      existingAdmin.password
-    );
-    if (!isPasswordCorrect) {
-      errors.passwordError = "Invalid Credentials";
-      return res.status(404).json(errors);
-    }
-
-    const token = jwt.sign(
-      {
-        email: existingAdmin.email,
-        id: existingAdmin._id, 
-        role: 'admin'
-      },
-      process.env.JWT_SECRET,
-      { expiresIn: "1h" }
-    );
-
-    res.status(200).json({ result: existingAdmin, token: token });
-  } catch (error) {
-    console.log(error);
-  }
-};
-
-export const updatedPassword = async (req, res) => {
-  try {
-    const { newPassword, confirmPassword, email } = req.body;
-    const errors = { mismatchError: String };
-    if (newPassword !== confirmPassword) {
-      errors.mismatchError =
-        "Your password and confirmation password do not match";
-      return res.status(400).json(errors);
-    }
-
-    const admin = await Admin.findOne({ email });
-    let hashedPassword;
     try {
-      hashedPassword = await bcrypt.hash(newPassword, 10);
-    } catch (hashError) {
-      return res.status(500).json({ message: "Error hashing the password" });
+      // Check for validation errors
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+
+      const { username, password } = req.body;
+      const errorsResponse = { usernameError: String, passwordError: String };
+
+      const existingAdmin = await Admin.findOne({ username });
+      if (!existingAdmin) {
+        errorsResponse.usernameError = "Admin doesn't exist.";
+        return res.status(404).json(errorsResponse);
+      }
+
+      const isPasswordCorrect = await bcrypt.compare(password, existingAdmin.password);
+      if (!isPasswordCorrect) {
+        errorsResponse.passwordError = "Invalid Credentials";
+        return res.status(404).json(errorsResponse);
+      }
+
+      const token = jwt.sign(
+        {
+          email: existingAdmin.email,
+          id: existingAdmin._id,
+          role: 'admin'
+        },
+        process.env.JWT_SECRET,
+        { expiresIn: "1h" }
+      );
+
+      res.status(200).json({ result: existingAdmin, token: token });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ backendError: error.message });
     }
-    admin.password = hashedPassword;
+  },
+];
+
+export const updatedPassword = [
+  // Validation and sanitization
+  body('newPassword').trim().escape(),
+  body('confirmPassword').trim().escape(),
+  body('email').isEmail().normalizeEmail(),
+
+  async (req, res) => {
+    try {
+      // Check for validation errors
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+
+      const { newPassword, confirmPassword, email } = req.body;
+      const mismatchErrors = { mismatchError: String };
+
+      if (newPassword !== confirmPassword) {
+        mismatchErrors.mismatchError = "Your password and confirmation password do not match";
+        return res.status(400).json(mismatchErrors);
+      }
+
+      const admin = await Admin.findOne({ email }).select('-password');
+      if (!admin) {
+        return res.status(404).json({ message: "Admin not found" });
+      }
+
+      let hashedPassword;
+      try {
+        hashedPassword = await bcrypt.hash(newPassword, 10);
+      } catch (hashError) {
+        return res.status(500).json({ message: "Error hashing the password" });
+      }
+
+      admin.password = hashedPassword;
     await admin.save();
     if (admin.passwordUpdated === false) {
       admin.passwordUpdated = true;
       await admin.save();
     }
+      res.status(200).json({
+        success: true,
+        message: "Password updated successfully",
+        response: admin,
+      });
+    } catch (error) {
+      const errors = { backendError: String };
+      errors.backendError = error.message;
+      res.status(500).json(errors);
+    }
+  },
+];
 
-    res.status(200).json({
-      success: true,
-      message: "Password updated successfully",
-      response: admin,
-    });
-  } catch (error) {
-    const errors = { backendError: String };
-    errors.backendError = error;
-    res.status(500).json(errors);
-  }
-};
 export const updateAdmin = [
   // Validation and sanitization
   body('name').optional().trim().escape(),
@@ -99,7 +128,7 @@ export const updateAdmin = [
       const { name, dob, department, contactNumber, avatar, email } = req.body;
 
       // Find the admin by email
-      const updatedAdmin = await Admin.findOne({ email });
+      const updatedAdmin = await Admin.findOne({ email }).select('-password');
       if (!updatedAdmin) {
         return res.status(404).json({ message: 'Admin not found' });
       }
@@ -144,7 +173,7 @@ export const addAdmin = [
       const { name, dob, department, contactNumber, avatar, email, joiningYear } = req.body;
 
       const errorsObj = { emailError: String };
-      const existingAdmin = await Admin.findOne({ email });
+      const existingAdmin = await Admin.findOne({ email }).select('-password');
       if (existingAdmin) {
         errorsObj.emailError = "Email already exists";
         return res.status(400).json(errorsObj);
@@ -218,7 +247,7 @@ export const addDummyAdmin = async () => {
  
   var passwordUpdated = true;
 
-  const dummyAdmin = await Admin.findOne({ email });
+  const dummyAdmin = await Admin.findOne({ email }).select('-password');
 
   if (!dummyAdmin) {
     await Admin.create({
@@ -366,7 +395,7 @@ export const addFaculty = [
       } = req.body;
 
       // Check if faculty with the same email already exists
-      const existingFaculty = await Faculty.findOne({ email });
+      const existingFaculty = await Faculty.findOne({ email }).select('-password');
       if (existingFaculty) {
         return res.status(400).json({ emailError: "Email already exists" });
       }
@@ -388,17 +417,16 @@ export const addFaculty = [
 
       var date = new Date();
       var components = ["FAC", date.getFullYear(), departmentHelper, helper];
-      var username = components.join("");
+   // Hash the password
+   var username = components.join("");
+   let hashedPassword;
+   const newDob = dob.split("-").reverse().join("-");
 
-      // Hash the date of birth to use as a temporary password
-      const newDob = dob.split("-").reverse().join("-");
-
-      try {
-        hashedPassword = await bcrypt.hash(newDob, 10);
-      } catch (hashError) {
-        return res.status(500).json({ message: "Error hashing the password" });
-      }
-      
+   try {
+     hashedPassword = await bcrypt.hash(newDob, 10);
+   } catch (hashError) {
+     return res.status(500).json({ message: "Error hashing the password" });
+   }
       var passwordUpdated = false;
 
       // Create new faculty record
@@ -546,7 +574,7 @@ export const getAdmin = async (req, res) => {
 
     const errors = { noAdminError: String };
 
-    const admins = await Admin.find({ department });
+    const admins = await Admin.find({ department }).select('-password');
     if (admins.length === 0) {
       errors.noAdminError = "No Subject Found";
       return res.status(404).json(errors);
@@ -639,31 +667,32 @@ export const deleteDepartment = async (req, res) => {
 };
 
 
+
 export const addStudent = [
-  // Validation and sanitization
+  // Apply trim and escape for sanitization
   body('name').trim().escape(),
   body('dob').trim().escape(),
   body('department').trim().escape(),
-  body('contactNumber').isMobilePhone().trim().escape(),
+  body('contactNumber').trim().escape(),
   body('avatar').trim().escape(),
-  body('email').isEmail().normalizeEmail(),
+  body('email').trim().isEmail().normalizeEmail(), // Validates and normalizes email
   body('section').trim().escape(),
   body('gender').trim().escape(),
   body('batch').trim().escape(),
   body('fatherName').trim().escape(),
   body('motherName').trim().escape(),
-  body('fatherContactNumber').isMobilePhone().trim().escape(),
-  body('motherContactNumber').isMobilePhone().trim().escape(),
-  body('year').isNumeric().trim().escape(),
+  body('fatherContactNumber').trim().escape(),
+  body('motherContactNumber').trim().escape(),
+  body('year').trim().escape(),
 
   async (req, res) => {
-    try {
-      // Check for validation errors
-      const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-      }
+    // Check for validation errors
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
 
+    try {
       const {
         name,
         dob,
@@ -681,16 +710,18 @@ export const addStudent = [
         year,
       } = req.body;
 
-      // Check if the student email already exists
-      const existingStudent = await Student.findOne({ email });
+      const existingStudent = await Student.findOne({ email }).select('-password');
       if (existingStudent) {
         return res.status(400).json({ emailError: "Email already exists" });
       }
 
-      const existingDepartment = await Department.findOne({ department });
-      let departmentHelper = existingDepartment.departmentCode;
+      const existingDepartment = await Department.findOne({ department }).select('-password');
+      if (!existingDepartment) {
+        return res.status(400).json({ departmentError: "Department not found" });
+      }
+      const departmentHelper = existingDepartment.departmentCode;
 
-      const students = await Student.find({ department });
+      const students = await Student.find({ department }).select('-password');
       let helper;
       if (students.length < 10) {
         helper = "00" + students.length.toString();
@@ -701,21 +732,21 @@ export const addStudent = [
       }
 
       const date = new Date();
-      const components = ["STU", date.getFullYear(), departmentHelper, helper];
-      const username = components.join("");
-
+      const components  = ["STU", date.getFullYear(), departmentHelper, helper];
+      
+      // Hash the password
+      var username = components.join("");
+      let hashedPassword;
       const newDob = dob.split("-").reverse().join("-");
-
-      // Hash the password (dob)
+  
       try {
         hashedPassword = await bcrypt.hash(newDob, 10);
       } catch (hashError) {
         return res.status(500).json({ message: "Error hashing the password" });
       }
+      var passwordUpdated = false;
 
-      const passwordUpdated = false;
-
-      // Create new student
+      
       const newStudent = new Student({
         name,
         dob,
@@ -738,33 +769,31 @@ export const addStudent = [
 
       await newStudent.save();
 
-      // Add relevant subjects for the student based on department and year
-      const subjects = await Subject.find({ department, year });
+      const subjects = await Subject.find({ department, year }).select('-password');
       if (subjects.length !== 0) {
-        for (let i = 0; i < subjects.length; i++) {
-          newStudent.subjects.push(subjects[i]._id);
+        for (const subject of subjects) {
+          newStudent.subjects.push(subject._id);
         }
       }
-
+      
       await newStudent.save();
-
+      
       return res.status(200).json({
         success: true,
         message: "Student registered successfully",
         response: newStudent,
       });
     } catch (error) {
-      return res.status(500).json({ backendError: error.message });
+      res.status(500).json({ backendError: error.message });
     }
-  },
+  }
 ];
-
 
 export const getStudent = async (req, res) => {
   try {
     const { department, year, section } = req.body;
     const errors = { noStudentError: String };
-    const students = await Student.find({ department, year });
+    const students = await Student.find({ department, year }).select('-password');
 
     if (students.length === 0) {
       errors.noStudentError = "No Student Found";
@@ -780,7 +809,7 @@ export const getStudent = async (req, res) => {
 };
 export const getAllStudent = async (req, res) => {
   try {
-    const students = await Student.find();
+    const students = await Student.find().select('-password');;
     res.status(200).json(students);
   } catch (error) {
     console.log("Backend Error", error);
@@ -789,7 +818,7 @@ export const getAllStudent = async (req, res) => {
 
 export const getAllFaculty = async (req, res) => {
   try {
-    const faculties = await Faculty.find();
+    const faculties = await Faculty.find().select('-password');
     res.status(200).json(faculties);
   } catch (error) {
     console.log("Backend Error", error);
@@ -798,7 +827,7 @@ export const getAllFaculty = async (req, res) => {
 
 export const getAllAdmin = async (req, res) => {
   try {
-    const admins = await Admin.find();
+    const admins = await Admin.find().select('-password');
     res.status(200).json(admins);
   } catch (error) {
     console.log("Backend Error", error);
@@ -806,7 +835,7 @@ export const getAllAdmin = async (req, res) => {
 };
   export const getAllDepartment = async (req, res) => {
     try {
-      const departments = await Department.find();
+      const departments = await Department.find().select('-password');
       res.status(200).json(departments);
     } catch (error) {
       console.log("Backend Error", error);

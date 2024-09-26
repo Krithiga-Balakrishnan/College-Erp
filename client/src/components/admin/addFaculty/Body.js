@@ -38,32 +38,65 @@ const Body = () => {
     }
   }, [store.errors]);
 
-  const validateAvatar = (file) => {
-    const validTypes = ["image/jpeg", "image/png", "image/jpg"];
-    const maxSize = 2 * 1024 * 1024; // 2MB
-    if (!validTypes.includes(file.type)) {
-      setError({ avatarError: "Invalid file type. Only JPEG, JPG, and PNG are allowed." });
-      setAvatarError(true); // Mark as invalid
-      return false;
-    }
-    if (file.size > maxSize) {
-      setError({ avatarError: "File size exceeds 2MB." });
-      setAvatarError(true); // Mark as invalid
-      return false;
-    }
-    setAvatarError(false); // Clear avatar errors if valid
-    return true;
-  };
+  // const validateAvatar = (file) => {
+  //   const validTypes = ["image/jpeg", "image/png", "image/jpg"];
+  //   const maxSize = 2 * 1024 * 1024; // 2MB
+  //   if (!validTypes.includes(file.type)) {
+  //     setError({ avatarError: "Invalid file type. Only JPEG, JPG, and PNG are allowed." });
+  //     setAvatarError(true); // Mark as invalid
+  //     return false;
+  //   }
+  //   if (file.size > maxSize) {
+  //     setError({ avatarError: "File size exceeds 2MB." });
+  //     setAvatarError(true); // Mark as invalid
+  //     return false;
+  //   }
+  //   setAvatarError(false); // Clear avatar errors if valid
+  //   return true;
+  // };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     setError({});
-    
-    // Prevent submission if there are errors
-    if (avatarError) {
-      setError({ ...error, avatarError: "Please upload a valid file." });
-      return; // Exit without submitting
+
+    // Check if there's any error related to the avatar file type
+    if (error.avatarError) {
+      alert("Please upload a valid image file (JPEG, PNG, JPG) before submitting.");
+      return; // Prevent form submission if there's an avatar error
     }
+  
+
+//  // Name validation: must be at least 3 characters long and should not contain '{' or '}'
+//  if (!value.name || value.name.length < 3) {
+//   alert("Name must be at least 3 characters long");
+//   return;
+// }
+
+if (/[{}:;,"]/g.test(value.name)) {
+  alert("Name contains invalid characters: {, }, :, ;, ,, or ' ");
+  return;
+}
+
+if (/[{}:;,"]/g.test(value.designation)) {
+  alert("designation contains invalid characters: {, }, :, ;, ,, or ' ");
+  return;
+}
+
+// Contact number validation: must be exactly 10 digits
+if (!/^\d{10}$/.test(value.contactNumber)) {
+  alert("Contact number must be 10 digits");
+  return;
+}
+
+// Sanitize email input: Remove any invalid characters including '{' and '}'
+const sanitizedEmail = value.email.replace(/[^\w@.-]/g, '');
+if (/[{}:;,"]/g.test(sanitizedEmail)) {
+  alert("Email contains invalid characters: {, }, :, ;, ,, or ' ");
+  return;
+}
+setValue({ ...value, email: sanitizedEmail });
+
+
 
     setLoading(true);
     dispatch(addFaculty(value));
@@ -95,6 +128,18 @@ const Body = () => {
   useEffect(() => {
     dispatch({ type: SET_ERRORS, payload: {} });
   }, []);
+
+   // Validate file type for avatar upload
+   const handleFileUpload = ({ base64, type }) => {
+    const allowedFileTypes = ["image/jpeg", "image/png", "image/jpg"];
+    if (!allowedFileTypes.includes(type)) {
+      setError({ ...error, avatarError: "Only JPEG, PNG, JPG files are allowed" });
+      setValue({ ...value, avatar: "" }); // Clear the avatar value if invalid
+    } else {
+      setValue({ ...value, avatar: base64 });
+      setError({ ...error, avatarError: "" }); // Clear the error if valid file
+    }
+  };
 
   return (
     <div className="flex-[0.8] mt-3">
@@ -212,17 +257,17 @@ const Body = () => {
                     }
                   />
                 </div>
+                
                 <div className={classes.adminForm3}>
                   <h1 className={classes.adminLabel}>Avatar :</h1>
                   <FileBase
                     type="file"
                     multiple={false}
-                    onDone={({ base64, file }) => {
-                      if (validateAvatar(file)) {
-                        setValue({ ...value, avatar: base64 });
-                      }
-                    }}
+                    onDone={handleFileUpload}
                   />
+                  {error.avatarError && (
+                    <p className="text-red-500">{error.avatarError}</p>
+                  )}
                 </div>
               </div>
             </div>

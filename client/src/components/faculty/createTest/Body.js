@@ -41,6 +41,20 @@ const Body = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     setError({});
+
+    if (/[{}:;,"]/g.test(value.test)) {
+      alert("test contains invalid characters:{, }, :, ;, ,, or '");
+      return;
+    }
+
+    if (/[{}:;,"]/g.test(value.subjectCode)) {
+      alert("subjectCode contains invalid characters:{, }, :, ;, ,, or '");
+      return;
+    }
+
+
+
+
     setLoading(true);
     dispatch(createTest(value));
   };

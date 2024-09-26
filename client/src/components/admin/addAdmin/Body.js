@@ -35,17 +35,43 @@ const Body = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     setError({}); // Clear previous errors
-
+  
     // Check if there's any error related to the avatar file type
     if (error.avatarError) {
       alert("Please upload a valid image file (JPEG, PNG, JPG) before submitting.");
       return; // Prevent form submission if there's an avatar error
     }
-
+  
+    // Name validation: must be at least 3 characters long and should not contain '{' or '}'
+    // if (!value.name || value.name.length < 3) {
+    //   alert("Name must be at least 3 characters long");
+    //   return;
+    // }
+  
+    if (/[{}:;,"]/g.test(value.name)) {
+      alert("Name contains invalid characters:{, }, :, ;, ,, or '");
+      return;
+    }
+  
+    // Contact number validation: must be exactly 10 digits
+    if (!/^\d{10}$/.test(value.contactNumber)) {
+      alert("Contact number must be 10 digits");
+      return;
+    }
+  
+    // Sanitize email input: Remove any invalid characters including '{' and '}'
+    const sanitizedEmail = value.email.replace(/[^\w@.-]/g, '');
+    if (/[{}:;,"]/g.test(sanitizedEmail)) {
+      alert("Email contains invalid characters:: {, }, :, ;, ,, or ' ");
+      return;
+    }
+    setValue({ ...value, email: sanitizedEmail });
+  
+    // Set loading and dispatch the action if all validations pass
     setLoading(true);
     dispatch(addAdmin(value));
   };
-
+  
   useEffect(() => {
     if (store.errors || store.admin.adminAdded) {
       setLoading(false);
@@ -104,9 +130,7 @@ const Body = () => {
                     className={classes.adminInput}
                     type="text"
                     value={value.name}
-                    onChange={(e) =>
-                      setValue({ ...value, name: e.target.value })
-                    }
+                    onChange={(e) => setValue({ ...value, name: e.target.value })}
                   />
                 </div>
 
@@ -118,9 +142,7 @@ const Body = () => {
                     required
                     type="date"
                     value={value.dob}
-                    onChange={(e) =>
-                      setValue({ ...value, dob: e.target.value })
-                    }
+                    onChange={(e) => setValue({ ...value, dob: e.target.value })}
                   />
                 </div>
 
@@ -132,9 +154,7 @@ const Body = () => {
                     className={classes.adminInput}
                     type="email"
                     value={value.email}
-                    onChange={(e) =>
-                      setValue({ ...value, email: e.target.value })
-                    }
+                    onChange={(e) => setValue({ ...value, email: e.target.value })}
                   />
                 </div>
               </div>
@@ -147,9 +167,7 @@ const Body = () => {
                     sx={{ height: 36 }}
                     inputProps={{ "aria-label": "Without label" }}
                     value={value.department}
-                    onChange={(e) =>
-                      setValue({ ...value, department: e.target.value })
-                    }>
+                    onChange={(e) => setValue({ ...value, department: e.target.value })}>
                     <MenuItem value="">None</MenuItem>
                     {departments?.map((dp, idx) => (
                       <MenuItem key={idx} value={dp.department}>
@@ -167,9 +185,7 @@ const Body = () => {
                     className={classes.adminInput}
                     type="number"
                     value={value.contactNumber}
-                    onChange={(e) =>
-                      setValue({ ...value, contactNumber: e.target.value })
-                    }
+                    onChange={(e) => setValue({ ...value, contactNumber: e.target.value })}
                   />
                 </div>
 
