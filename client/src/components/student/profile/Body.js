@@ -4,8 +4,10 @@ import SecurityUpdateIcon from "@mui/icons-material/SecurityUpdate";
 import { Avatar } from "@mui/material";
 import Data from "./Data";
 import { useNavigate } from "react-router-dom";
+import useCsrfToken from "../../../hooks/useCsrfToken"; 
 const Body = () => {
   const user = JSON.parse(localStorage.getItem("user"));
+  const csrfToken = useCsrfToken();
   const navigate = useNavigate();
   return (
     <div className="flex-[0.8] mt-3">

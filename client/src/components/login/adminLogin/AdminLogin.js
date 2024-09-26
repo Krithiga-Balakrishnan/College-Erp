@@ -5,6 +5,9 @@ import { adminSignIn } from "../../../redux/actions/adminActions";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import Spinner from "../../../utils/Spinner";
+import { toast } from "react-toastify";
+import useCsrfToken from "../../../hooks/useCsrfToken"; 
+
 
 const AdminLogin = () => {
   const [translate, setTranslate] = useState(false);
@@ -16,6 +19,8 @@ const AdminLogin = () => {
   const navigate = useNavigate();
   const store = useSelector((state) => state);
   const [error, setError] = useState({});
+  const csrfToken = useCsrfToken(); // Call the custom hook to get the CSRF token
+
   useEffect(() => {
     setTimeout(() => {
       setTranslate(true);
@@ -28,10 +33,18 @@ const AdminLogin = () => {
     }
   }, [store.errors]);
 
-  const login = (e) => {
+  const login = async(e) => {
     e.preventDefault();
     setLoading(true);
-    dispatch(adminSignIn({ username: username, password: password }, navigate));
+    try {
+      // Prepare the login data with CSRF token
+      const loginData = { username: username, password: password, _csrf: csrfToken };
+   await dispatch(adminSignIn(loginData, navigate));
+  }catch (error) {
+    console.error("Login failed:", error);
+    toast.error("Login failed: " + (error.response?.data?.message || error.message));
+    setLoading(false);
+  }
   };
 
   useEffect(() => {

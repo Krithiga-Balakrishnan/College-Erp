@@ -8,6 +8,8 @@ import { adminUpdatePassword } from "../../../../../redux/actions/adminActions";
 import * as classes from "../../../../../utils/styles";
 import { facultyUpdatePassword } from "../../../../../redux/actions/facultyActions";
 import { studentUpdatePassword } from "../../../../../redux/actions/studentActions";
+import useCsrfToken from "../../../../../hooks/useCsrfToken"; 
+
 const Body = () => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -18,6 +20,8 @@ const Body = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user"));
+  const csrfToken = useCsrfToken();
+
 
   useEffect(() => {
     if (Object.keys(store.errors).length !== 0) {

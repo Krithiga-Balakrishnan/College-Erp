@@ -4,6 +4,7 @@ import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import Spinner from "../../../../../utils/Spinner";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import useCsrfToken from "../../../../../hooks/useCsrfToken"; 
 import { facultyUpdatePassword } from "../../../../../redux/actions/facultyActions";
 
 const Body = () => {
@@ -16,6 +17,7 @@ const Body = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user"));
+  const csrfToken = useCsrfToken();
 
   useEffect(() => {
     if (Object.keys(store.errors).length !== 0) {

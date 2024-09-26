@@ -6,6 +6,7 @@ import Subject from "../models/subject.js";
 import Notice from "../models/notice.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
+import csrfProtection from "../middleware/csrfMiddleware.js";
 import { body, validationResult } from "express-validator";
 
 
@@ -36,7 +37,9 @@ export const adminLogin = [
         errorsResponse.passwordError = "Invalid Credentials";
         return res.status(404).json(errorsResponse);
       }
-
+      const csrfToken = req.csrfToken();
+      console.log('Generated CSRF Token:', csrfToken);
+  
       const token = jwt.sign(
         {
           email: existingAdmin.email,
@@ -47,7 +50,7 @@ export const adminLogin = [
         { expiresIn: "1h" }
       );
 
-      res.status(200).json({ result: existingAdmin, token: token });
+      res.status(200).json({ result: existingAdmin, token: token ,csrfToken});
     } catch (error) {
       console.error(error);
       res.status(500).json({ backendError: error.message });
@@ -91,16 +94,20 @@ export const updatedPassword = [
 
       admin.password = hashedPassword;
     await admin.save();
+    const csrfToken = req.csrfToken(); // Generate CSRF token
     if (admin.passwordUpdated === false) {
       admin.passwordUpdated = true;
       await admin.save();
+      const csrfToken = req.csrfToken(); // Generate CSRF token
     }
       res.status(200).json({
         success: true,
         message: "Password updated successfully",
         response: admin,
+        csrfToken,
       });
     } catch (error) {
+      console.error("Error in updateAdminPassword controller:", error);
       const errors = { backendError: String };
       errors.backendError = error.message;
       res.status(500).json(errors);
@@ -222,11 +229,13 @@ export const addAdmin = [
       });
 
       await newAdmin.save();
+      const csrfToken = req.csrfToken(); // Generate CSRF token
 
       return res.status(200).json({
         success: true,
         message: "Admin registered successfully",
         response: newAdmin,
+        csrfToken, // Send CSRF token in response
       });
     } catch (error) {
       const errors = { backendError: String };
@@ -298,14 +307,17 @@ export const createNotice = [
 
       // Save the new notice to the database
       await newNotice.save();
+      const csrfToken = req.csrfToken(); // Generate CSRF token
 
       return res.status(200).json({
         success: true,
         message: "Notice created successfully",
         response: newNotice,
+        csrfToken,
       });
     } catch (error) {
       // Handle backend errors
+      console.error("Error in createNotice controller:", error);
       return res.status(500).json({ backendError: error.message });
     }
   },
@@ -348,14 +360,17 @@ export const addDepartment = [
 
       // Save the new department to the database
       await newDepartment.save();
+      const csrfToken = req.csrfToken(); // Generate CSRF token
 
       return res.status(200).json({
         success: true,
         message: "Department added successfully",
         response: newDepartment,
+        csrfToken,
       });
     } catch (error) {
       // Handle backend errors
+      console.error("Error in addDepartment controller:", error);
       return res.status(500).json({ backendError: error.message });
     }
   },
@@ -402,6 +417,7 @@ export const addFaculty = [
 
       // Get department code from existing department
       const existingDepartment = await Department.findOne({ department });
+      let hashedPassword; 
       let departmentHelper = existingDepartment.departmentCode;
 
       // Generate a unique username for the faculty
@@ -421,7 +437,6 @@ export const addFaculty = [
    var username = components.join("");
    let hashedPassword;
    const newDob = dob.split("-").reverse().join("-");
-
    try {
      hashedPassword = await bcrypt.hash(newDob, 10);
    } catch (hashError) {
@@ -447,14 +462,16 @@ export const addFaculty = [
 
       // Save the new faculty to the database
       await newFaculty.save();
-
+      const csrfToken = req.csrfToken(); // Generate CSRF token
       return res.status(200).json({
         success: true,
         message: "Faculty registered successfully",
         response: newFaculty,
+        csrfToken,
       });
     } catch (error) {
       // Handle backend errors
+      console.error("Error in addFaculty controller:", error);
       return res.status(500).json({ backendError: error.message });
     }
   },
@@ -465,11 +482,12 @@ export const getFaculty = async (req, res) => {
     const { department } = req.body;
     const errors = { noFacultyError: String };
     const faculties = await Faculty.find({ department });
+    const csrfToken = req.csrfToken(); // Generate CSRF token
     if (faculties.length === 0) {
       errors.noFacultyError = "No Faculty Found";
       return res.status(404).json(errors);
     }
-    res.status(200).json({ result: faculties });
+    res.status(200).json({ result: faculties,csrfToken });
   } catch (error) {
     const errors = { backendError: String };
     errors.backendError = error;
@@ -480,11 +498,12 @@ export const getNotice = async (req, res) => {
   try {
     const errors = { noNoticeError: String };
     const notices = await Notice.find({});
+    const csrfToken = req.csrfToken(); // Generate CSRF token
     if (notices.length === 0) {
       errors.noNoticeError = "No Notice Found";
       return res.status(404).json(errors);
     }
-    res.status(200).json({ result: notices });
+    res.status(200).json({ result: notices,csrfToken });
   } catch (error) {
     const errors = { backendError: String };
     errors.backendError = error;
@@ -526,7 +545,7 @@ export const addSubject = [
       });
 
       await newSubject.save();
-
+      const csrfToken = req.csrfToken(); // Generate CSRF token
       // Find students in the same department and year and add the subject to their records
       const students = await Student.find({ department, year });
       if (students.length !== 0) {
@@ -540,9 +559,11 @@ export const addSubject = [
         success: true,
         message: "Subject added successfully",
         response: newSubject,
+        csrfToken,
       });
     } catch (error) {
       // Handle backend errors
+      console.error("Error in addSubject controller:", error);
       return res.status(500).json({ backendError: error.message });
     }
   },
@@ -556,11 +577,12 @@ export const getSubject = async (req, res) => {
     const errors = { noSubjectError: String };
 
     const subjects = await Subject.find({ department, year });
+    const csrfToken = req.csrfToken(); // Generate CSRF token
     if (subjects.length === 0) {
       errors.noSubjectError = "No Subject Found";
       return res.status(404).json(errors);
     }
-    res.status(200).json({ result: subjects });
+    res.status(200).json({ result: subjects,csrfToken});
   } catch (error) {
     const errors = { backendError: String };
     errors.backendError = error;
@@ -590,16 +612,20 @@ export const getAdmin = async (req, res) => {
 export const deleteAdmin = async (req, res) => {
   try {
     const admins = req.body;
+    let csrfToken = req.csrfToken(); // Generate CSRF token outside the loop
     const errors = { noAdminError: String };
     for (var i = 0; i < admins.length; i++) {
       var admin = admins[i];
 
       await Admin.findOneAndDelete({ _id: admin });
+     
     }
-    res.status(200).json({ message: "Admin Deleted" });
+    
+    res.status(200).json({ message: "Admin Deleted", csrfToken,});
   } catch (error) {
     const errors = { backendError: String };
     errors.backendError = error;
+    console.error("Error in deleteAdmin controller:", error);
     res.status(500).json(errors);
   }
 };
@@ -612,7 +638,8 @@ export const deleteFaculty = async (req, res) => {
 
       await Faculty.findOneAndDelete({ _id: faculty });
     }
-    res.status(200).json({ message: "Faculty Deleted" });
+    const csrfToken = req.csrfToken(); // Generate CSRF token
+    res.status(200).json({ message: "Faculty Deleted",csrfToken });
   } catch (error) {
     const errors = { backendError: String };
     errors.backendError = error;
@@ -622,13 +649,14 @@ export const deleteFaculty = async (req, res) => {
 export const deleteStudent = async (req, res) => {
   try {
     const students = req.body;
+    const csrfToken = req.csrfToken(); // Generate CSRF token
     const errors = { noStudentError: String };
     for (var i = 0; i < students.length; i++) {
       var student = students[i];
 
       await Student.findOneAndDelete({ _id: student });
     }
-    res.status(200).json({ message: "Student Deleted" });
+    res.status(200).json({ message: "Student Deleted",csrfToken });
   } catch (error) {
     const errors = { backendError: String };
     errors.backendError = error;
@@ -638,13 +666,14 @@ export const deleteStudent = async (req, res) => {
 export const deleteSubject = async (req, res) => {
   try {
     const subjects = req.body;
+    const csrfToken = req.csrfToken(); // Generate CSRF token
     const errors = { noSubjectError: String };
     for (var i = 0; i < subjects.length; i++) {
       var subject = subjects[i];
 
       await Subject.findOneAndDelete({ _id: subject });
     }
-    res.status(200).json({ message: "Subject Deleted" });
+    res.status(200).json({ message: "Subject Deleted",csrfToken });
   } catch (error) {
     const errors = { backendError: String };
     errors.backendError = error;
@@ -657,8 +686,8 @@ export const deleteDepartment = async (req, res) => {
     const { department } = req.body;
 
     await Department.findOneAndDelete({ department });
-
-    res.status(200).json({ message: "Department Deleted" });
+    const csrfToken = req.csrfToken(); // Generate CSRF token
+    res.status(200).json({ message: "Department Deleted",csrfToken, });
   } catch (error) {
     const errors = { backendError: String };
     errors.backendError = error;
@@ -738,10 +767,10 @@ export const addStudent = [
       var username = components.join("");
       let hashedPassword;
       const newDob = dob.split("-").reverse().join("-");
-  
       try {
         hashedPassword = await bcrypt.hash(newDob, 10);
       } catch (hashError) {
+        console.error("Hashing Error:", hashError); // Log the exact error
         return res.status(500).json({ message: "Error hashing the password" });
       }
       var passwordUpdated = false;
@@ -768,6 +797,7 @@ export const addStudent = [
       });
 
       await newStudent.save();
+      // Generate CSRF token
 
       const subjects = await Subject.find({ department, year }).select('-password');
       if (subjects.length !== 0) {
@@ -777,14 +807,16 @@ export const addStudent = [
       }
       
       await newStudent.save();
-      
+      const csrfToken = req.csrfToken(); 
       return res.status(200).json({
         success: true,
         message: "Student registered successfully",
         response: newStudent,
+        csrfToken,
       });
     } catch (error) {
-      res.status(500).json({ backendError: error.message });
+      console.error("Error in addStudent controller:", error);
+      return res.status(500).json({ backendError: error.message });
     }
   }
 ];
@@ -793,14 +825,14 @@ export const getStudent = async (req, res) => {
   try {
     const { department, year, section } = req.body;
     const errors = { noStudentError: String };
-    const students = await Student.find({ department, year }).select('-password');
-
+const students = await Student.find({ department, year }).select('-password');
+const csrfToken = req.csrfToken(); // Generate CSRF token
     if (students.length === 0) {
       errors.noStudentError = "No Student Found";
       return res.status(404).json(errors);
     }
 
-    res.status(200).json({ result: students });
+    res.status(200).json({ result: students ,csrfToken});
   } catch (error) {
     const errors = { backendError: String };
     errors.backendError = error;

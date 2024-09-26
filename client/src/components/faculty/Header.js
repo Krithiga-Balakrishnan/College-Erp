@@ -3,12 +3,19 @@ import { Avatar } from "@mui/material";
 import LogoutIcon from "@mui/icons-material/Logout";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import useCsrfToken from "../../hooks/useCsrfToken"; 
+
 const Header = () => {
   const user = JSON.parse(localStorage.getItem("user"));
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const csrfToken = useCsrfToken();
+  
   const logout = () => {
     dispatch({ type: "LOGOUT" });
+    localStorage.removeItem("csrfToken");
+    localStorage.removeItem("csrfToken"); // Remove CSRF token
+    console.log("CSRF token removed");
     navigate("/login/facultylogin");
   };
   return (

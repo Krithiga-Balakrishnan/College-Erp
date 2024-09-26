@@ -34,6 +34,8 @@ const Body = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    console.log('Submitting admin data:', value);
+    console.log('CSRF Token:', localStorage.getItem('csrfToken'));
     setError({}); // Clear previous errors
   
     // Check if there's any error related to the avatar file type
@@ -68,6 +70,7 @@ const Body = () => {
     setValue({ ...value, email: sanitizedEmail });
   
     // Set loading and dispatch the action if all validations pass
+
     setLoading(true);
     dispatch(addAdmin(value));
   };
@@ -89,6 +92,9 @@ const Body = () => {
         });
         dispatch({ type: SET_ERRORS, payload: {} });
         dispatch({ type: ADD_ADMIN, payload: false });
+      }else {
+        // Handle specific error cases if needed
+        setError(store.errors);
       }
     } else {
       setLoading(true);

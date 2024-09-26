@@ -10,16 +10,17 @@ import {
   markAttendance,
 } from "../controller/facultyController.js";
 import auth from "../middleware/auth.js";
+import csrfProtection from "../middleware/csrfMiddleware.js";
 
 const router = express.Router();
 
-router.post("/login", facultyLogin);
-router.post("/updatepassword", auth('faculty'), updatedPassword);
-router.post("/updateprofile", auth('faculty'), updateFaculty);
-router.post("/createtest", auth('faculty'), createTest);
-router.post("/gettest", auth('faculty'), getTest);
-router.post("/getstudent", auth('faculty'), getStudent);
-router.post("/uploadmarks", auth('faculty'), uploadMarks);
-router.post("/markattendance", auth('faculty'), markAttendance);
+router.post("/login",csrfProtection, facultyLogin);
+router.post("/updatepassword", auth('faculty'), csrfProtection,updatedPassword);
+router.post("/updateprofile", auth('faculty'),csrfProtection, updateFaculty);
+router.post("/createtest", auth('faculty'),csrfProtection, createTest);
+router.post("/gettest", auth('faculty'), csrfProtection,getTest);
+router.post("/getstudent", auth('faculty'),csrfProtection, getStudent);
+router.post("/uploadmarks", auth('faculty'),csrfProtection, uploadMarks);
+router.post("/markattendance", auth('faculty'), csrfProtection,markAttendance);
 
 export default router;

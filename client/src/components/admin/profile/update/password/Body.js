@@ -6,6 +6,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { adminUpdatePassword } from "../../../../../redux/actions/adminActions";
 import * as classes from "../../../../../utils/styles";
+import useCsrfToken from "../../../../../hooks/useCsrfToken"; 
+
 const Body = () => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -16,6 +18,7 @@ const Body = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user"));
+  const csrfToken = useCsrfToken();
 
   useEffect(() => {
     if (Object.keys(store.errors).length !== 0) {

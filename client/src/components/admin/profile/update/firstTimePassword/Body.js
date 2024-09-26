@@ -5,6 +5,7 @@ import Spinner from "../../../../../utils/Spinner";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { adminUpdatePassword } from "../../../../../redux/actions/adminActions";
+import useCsrfToken from "../../../../../hooks/useCsrfToken"; 
 
 const Body = () => {
   const [newPassword, setNewPassword] = useState("");
@@ -16,6 +17,7 @@ const Body = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user"));
+  const csrfToken = useCsrfToken();
 
   useEffect(() => {
     if (Object.keys(store.errors).length !== 0) {

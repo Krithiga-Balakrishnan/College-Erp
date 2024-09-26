@@ -6,6 +6,8 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import Spinner from "../../../utils/Spinner";
 import { facultySignIn } from "../../../redux/actions/facultyActions";
+import useCsrfToken from "../../../hooks/useCsrfToken"; 
+
 
 const FacultyLogin = () => {
   const [translate, setTranslate] = useState(false);
@@ -17,6 +19,8 @@ const FacultyLogin = () => {
   const navigate = useNavigate();
   const store = useSelector((state) => state);
   const [error, setError] = useState({});
+  const csrfToken = useCsrfToken(); // Call the custom hook to get the CSRF token  
+
   useEffect(() => {
     setTimeout(() => {
       setTranslate(true);
@@ -33,7 +37,7 @@ const FacultyLogin = () => {
     e.preventDefault();
     setLoading(true);
     dispatch(
-      facultySignIn({ username: username, password: password }, navigate)
+      facultySignIn({ username: username, password: password,_csrf: csrfToken }, navigate)
     );
   };
 

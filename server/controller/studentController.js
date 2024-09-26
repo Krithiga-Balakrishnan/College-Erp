@@ -1,4 +1,3 @@
-import student from "../models/student.js";
 import Test from "../models/test.js";
 import Student from "../models/student.js";
 import Department from '../models/department.js'; // Adjust the import path as necessary
@@ -9,6 +8,8 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { OAuth2Client } from 'google-auth-library'; // Import Google's OAuth2 client
 import { body, validationResult } from "express-validator";
+import csrfProtection from "../middleware/csrfMiddleware.js";
+
 
 const client = new OAuth2Client(process.env.GOOGLE_OAUTH_CLIENT_ID); // Make sure to set GOOGLE_CLIENT_ID in your .env file
 
@@ -52,7 +53,7 @@ export const studentLogin = [
   body('password').optional().trim().escape(),
   body('googleCredential').optional().trim().escape(),
 
-  async (req, res) => {
+async (req, res) => {
     try {
       // Check for validation errors
       const errors = validationResult(req);
@@ -104,7 +105,8 @@ export const studentLogin = [
           // Create the new student
           existingStudent = await Student.create(defaultData); // Assign created student to existingStudent
         }
-
+        const csrfToken = req.csrfToken();
+        console.log('Generated CSRF Token:', csrfToken); // Log the generated toke
         // Generate a JWT token for the session
         const token = jwt.sign(
           { email: existingStudent.email, id: existingStudent._id, role: 'student' },
@@ -112,7 +114,7 @@ export const studentLogin = [
           { expiresIn: '1h' }
         );
 
-        return res.status(200).json({ result: existingStudent, token });
+        return res.status(200).json({ result: existingStudent, token,csrfToken });
 
       } else if (username && password) {
         const errors = { usernameError: null, passwordError: null };
@@ -128,7 +130,8 @@ export const studentLogin = [
           errors.passwordError = "Invalid Credentials";
           return res.status(401).json(errors); // Changed status to 401 for invalid credentials
         }
-
+        const csrfToken = req.csrfToken();
+        console.log('Generated CSRF Token:', csrfToken);
         // Generate JWT token for traditional login
         const token = jwt.sign(
           { email: existingStudent.email, id: existingStudent._id, role: 'student' },
@@ -136,7 +139,7 @@ export const studentLogin = [
           { expiresIn: '1h' }
         );
 
-        return res.status(200).json({ result: existingStudent, token });
+        return res.status(200).json({ result: existingStudent, token,csrfToken });
       } else {
         return res.status(400).json({ message: 'Invalid login attempt.' });
       }
@@ -188,11 +191,13 @@ export const updatedPassword = [
       student.password = hashedPassword;
       student.passwordUpdated = true; // Set to true if password is being updated
       await student.save();
+      const csrfToken = req.csrfToken(); // Generate CSRF token
 
       res.status(200).json({
         success: true,
         message: "Password updated successfully",
         response: student,
+        csrfToken
       });
     } catch (error) {
       console.error('Error updating password:', error);
@@ -260,8 +265,9 @@ export const updateStudent = [
 
       // Save the updated student
       await updatedStudent.save();
+      const csrfToken = req.csrfToken(); // Generate CSRF token
 
-      res.status(200).json(updatedStudent);
+      res.status(200).json({student: updatedStudent,csrfToken});
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
@@ -298,8 +304,10 @@ export const testResult = async (req, res) => {
         result.push(temp);
       }
     }
+    const csrfToken = req.csrfToken(); // Generate CSRF token
 
-    res.status(200).json({ result });
+
+    res.status(200).json({ result,csrfToken });
   } catch (error) {
     res.status(500).json(error);
   }
@@ -309,14 +317,14 @@ export const attendance = async (req, res) => {
   try {
     const { department, year, section } = req.body;
     const errors = { notestError: String };
-    const student = await Student.findOne({ department, year, section }).select('-password');
-
+const student = await Student.findOne({ department, year, section }).select('-password');
     const attendence = await Attendence.find({
       student: student._id,
     }).populate("subject");
     if (!attendence) {
       res.status(400).json({ message: "Attendence not found" });
     }
+    const csrfToken = req.csrfToken(); // Generate CSRF token
 
     res.status(200).json({
       result: attendence.map((att) => {
@@ -331,6 +339,7 @@ export const attendance = async (req, res) => {
         res.total = att.totalLecturesByFaculty;
         return res;
       }),
+      csrfToken,
     });
   } catch (error) {
     res.status(500).json(error);

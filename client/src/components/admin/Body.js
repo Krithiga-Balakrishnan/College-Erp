@@ -92,6 +92,7 @@ const Body = () => {
                 {!open ? (
                   notices?.map((notice, idx) => (
                     <div
+                    key={idx}
                       onClick={() => {
                         setOpen(true);
                         setOpenNotice(notice);

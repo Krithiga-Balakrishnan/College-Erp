@@ -6,6 +6,7 @@ import Marks from "../models/marks.js";
 import Attendence from "../models/attendance.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
+import csrfProtection from "../middleware/csrfMiddleware.js";
 
 import { body, validationResult } from "express-validator";
 
@@ -36,7 +37,9 @@ export const facultyLogin = [
         errorsResponse.passwordError = "Invalid Credentials";
         return res.status(404).json(errorsResponse);
       }
-
+      const csrfToken = req.csrfToken();
+      console.log('Generated CSRF Token:', csrfToken); // Log the generated toke
+  
       const token = jwt.sign(
         {
           email: existingFaculty.email,
@@ -47,13 +50,14 @@ export const facultyLogin = [
         { expiresIn: "1h" }
       );
 
-      res.status(200).json({ result: existingFaculty, token });
+      res.status(200).json({ result: existingFaculty, token,  csrfToken  });
     } catch (error) {
       console.log(error);
       res.status(500).json({ backendError: error.message });
     }
   },
 ];
+
 
 export const updatedPassword = async (req, res) => {
   try {
@@ -74,15 +78,19 @@ export const updatedPassword = async (req, res) => {
     }
     faculty.password = hashedPassword;
     await faculty.save();
+    const csrfToken = req.csrfToken(); // Generate CSRF token
     if (faculty.passwordUpdated === false) {
       faculty.passwordUpdated = true;
       await faculty.save();
+      const csrfToken = req.csrfToken(); // Generate CSRF token
+
     }
 
     res.status(200).json({
       success: true,
       message: "Password updated successfully",
       response: faculty,
+      csrfToken,
     });
   } catch (error) {
     const errors = { backendError: String };
@@ -127,10 +135,12 @@ export const updateFaculty = [
 
       // Save the updated faculty information
       await updatedFaculty.save();
+      const csrfToken = req.csrfToken(); // Generate CSRF token
 
       res.status(200).json({
         message: "Faculty updated successfully",
         updatedFaculty,
+        csrfToken,
       });
     } catch (error) {
       const errors = { backendError: error.message };
@@ -186,11 +196,13 @@ export const createTest = [
 
       // Save the new test
       await newTest.save();
+      const csrfToken = req.csrfToken(); // Generate CSRF token
 
       return res.status(200).json({
         success: true,
         message: "Test added successfully",
         response: newTest,
+        csrfToken,
       });
     } catch (error) {
       const errors = { backendError: error.message };
@@ -204,8 +216,9 @@ export const getTest = async (req, res) => {
     const { department, year, section } = req.body;
 
     const tests = await Test.find({ department, year, section });
+    const csrfToken = req.csrfToken(); // Generate CSRF token
 
-    res.status(200).json({ result: tests });
+    res.status(200).json({ result: tests, csrfToken });
   } catch (error) {
     const errors = { backendError: String };
     errors.backendError = error;
@@ -217,13 +230,14 @@ export const getStudent = async (req, res) => {
   try {
     const { department, year, section } = req.body;
     const errors = { noStudentError: String };
-    const students = await Student.find({ department, year, section }).select('-password');
+const students = await Student.find({ department, year, section }).select('-password');
+const csrfToken = req.csrfToken(); // Generate CSRF token
     if (students.length === 0) {
       errors.noStudentError = "No Student Found";
       return res.status(404).json(errors);
     }
 
-    res.status(200).json({ result: students });
+    res.status(200).json({ result: students ,csrfToken});
   } catch (error) {
     const errors = { backendError: String };
     errors.backendError = error;
@@ -259,7 +273,9 @@ export const uploadMarks = async (req, res) => {
       });
       await newMarks.save();
     }
-    res.status(200).json({ message: "Marks uploaded successfully" });
+    const csrfToken = req.csrfToken();
+    console.log("CSRF Token generated:", csrfToken);
+    res.status(200).json({ message: "Marks uploaded successfully" ,csrfToken});
   } catch (error) {
     const errors = { backendError: String };
     errors.backendError = error;
@@ -312,7 +328,8 @@ export const markAttendance = async (req, res) => {
         await pre.save();
       }
     }
-    res.status(200).json({ message: "Attendance Marked successfully" });
+    const csrfToken = req.csrfToken(); 
+    res.status(200).json({ message: "Attendance Marked successfully",csrfToken, });
   } catch (error) {
     const errors = { backendError: String };
     errors.backendError = error;

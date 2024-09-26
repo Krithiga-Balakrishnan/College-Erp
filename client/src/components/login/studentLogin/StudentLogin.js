@@ -8,6 +8,7 @@ import { studentSignIn } from "../../../redux/actions/studentActions";
 import { GoogleLogin } from "@react-oauth/google"; // Import GoogleLogin
 import jwt_decode from "jwt-decode"; 
 import { toast } from "react-toastify";
+import useCsrfToken from "../../../hooks/useCsrfToken"; 
 
 
 const StudentLogin = () => {
@@ -20,6 +21,7 @@ const StudentLogin = () => {
   const navigate = useNavigate();
   const store = useSelector((state) => state);
   const [error, setError] = useState({});
+  const csrfToken = useCsrfToken(); // Call the custom hook to get the CSRF token  
   useEffect(() => {
     setTimeout(() => {
       setTranslate(true);
@@ -32,12 +34,18 @@ const StudentLogin = () => {
     }
   }, [store.errors]);
 
-  const login = (e) => {
+  const login = async (e) => {
     e.preventDefault();
     setLoading(true);
-    dispatch(
-      studentSignIn({ username: username, password: password }, navigate)
-    );
+    try {
+      // Prepare the login data with CSRF token
+      const loginData = { username: username, password: password, _csrf: csrfToken };
+      await dispatch(studentSignIn(loginData, navigate));
+  }catch (error) {
+      console.error("Login failed:", error);
+      toast.error("Login failed: " + (error.response?.data?.message || error.message));
+      setLoading(false);
+    }
   };
 
   // const handleGoogleLogin = async (response) => {
@@ -63,7 +71,8 @@ const StudentLogin = () => {
     if (response.credential) {
       try {
         const formData = {
-          googleCredential: response.credential,  // Send the credential (JWT) directly to the backend
+          googleCredential: response.credential, 
+          _csrf: csrfToken, // Send the credential (JWT) directly to the backend
         };
         // Store Google credential in local storage if necessary
         localStorage.setItem("user", JSON.stringify({ result: formData }));

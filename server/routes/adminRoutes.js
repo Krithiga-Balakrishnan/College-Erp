@@ -26,6 +26,8 @@ import {
   createNotice,
   getNotice,
 } from "../controller/adminController.js";
+import csrfProtection from "../middleware/csrfMiddleware.js";
+
 const router = express.Router();
 // const checkRole = (requiredRole) => (req, res, next) => {
 //   if (req.userRole !== requiredRole) {
@@ -33,30 +35,30 @@ const router = express.Router();
 //   }
 //   next();
 // };
-router.post("/login", adminLogin);
-router.post("/updatepassword", auth('admin'), updatedPassword);
+router.post("/login", csrfProtection,adminLogin);
+router.post("/updatepassword", auth('admin'),csrfProtection, updatedPassword);
 router.get("/getallstudent", auth(), getAllStudent);
-router.post("/createnotice", auth('admin'), createNotice);
+router.post("/createnotice", auth('admin'),csrfProtection, createNotice);
 router.get("/getallfaculty", auth(), getAllFaculty);
 router.get("/getalldepartment", auth(), getAllDepartment);
 router.get("/getallsubject", auth(), getAllSubject);
 router.get("/getalladmin", auth(), getAllAdmin);
 router.post("/updateprofile", auth('admin'), updateAdmin);
-router.post("/addadmin", auth('admin'), addAdmin);
-router.post("/adddepartment", auth('admin'), addDepartment);
-router.post("/addfaculty", auth('admin'), addFaculty);
-router.post("/getfaculty", auth(), getFaculty);
-router.post("/addsubject", auth('admin'), addSubject);
-router.post("/getsubject", auth(), getSubject);
-router.post("/addstudent", auth('admin'), addStudent);
-router.post("/getstudent", auth(), getStudent);
-router.post("/getnotice", auth(), getNotice);
-router.post("/getadmin", auth(), getAdmin);
-router.post("/deleteadmin", auth('admin'), deleteAdmin);
-router.post("/deletefaculty", auth('admin'), deleteFaculty);
-router.post("/deletestudent", auth('admin'), deleteStudent);
-router.post("/deletedepartment", auth('admin'), deleteDepartment);
-router.post("/deletesubject", auth('admin'), deleteSubject);
+router.post("/addadmin", auth('admin'), csrfProtection,addAdmin);
+router.post("/adddepartment", auth('admin'), csrfProtection,addDepartment);
+router.post("/addfaculty", auth('admin'),csrfProtection, addFaculty);
+router.post("/getfaculty", auth(),csrfProtection, getFaculty);
+router.post("/addsubject", auth('admin'), csrfProtection,addSubject);
+router.post("/getsubject", auth(),csrfProtection, getSubject);
+router.post("/addstudent", auth('admin'), csrfProtection,addStudent);
+router.post("/getstudent", auth(), csrfProtection,getStudent);
+router.post("/getnotice", auth(),csrfProtection, getNotice);
+router.post("/getadmin", auth(), csrfProtection,getAdmin);
+router.post("/deleteadmin", auth('admin'), csrfProtection,deleteAdmin);
+router.post("/deletefaculty", auth('admin'), csrfProtection,deleteFaculty);
+router.post("/deletestudent", auth('admin'),csrfProtection, deleteStudent);
+router.post("/deletedepartment", auth('admin'), csrfProtection,deleteDepartment);
+router.post("/deletesubject", auth('admin'),csrfProtection, deleteSubject);
 
 
 
