@@ -8,7 +8,7 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import csrfProtection from "../middleware/csrfMiddleware.js";
 import { body, validationResult } from "express-validator";
-
+import mongoose from 'mongoose';
 
 export const adminLogin = [
   // Validation and sanitization
@@ -204,8 +204,14 @@ export const addAdmin = [
       var username = components.join("");
 
       let hashedPassword;
-      const newDob = dob.split("-").reverse().join("-");
-
+      // Ensure dob is a string before processing
+      let newDob;
+      if (typeof dob === 'string') {
+        newDob = dob.split("-").reverse().join("-");
+      } else {
+        // Handle the error appropriately, e.g., return a response
+        return res.status(400).json({ error: "Invalid date of birth format" });
+      }
 
        try {
       hashedPassword = await bcrypt.hash(newDob, 10);
@@ -433,14 +439,29 @@ export const addFaculty = [
 
       var date = new Date();
       var components = ["FAC", date.getFullYear(), departmentHelper, helper];
-   // Hash the password
-   var username = components.join("");
-   const newDob = dob.split("-").reverse().join("-");
-   try {
-     hashedPassword = await bcrypt.hash(newDob, 10);
-   } catch (hashError) {
-     return res.status(500).json({ message: "Error hashing the password" });
-   }
+      var username = components.join("");
+
+      // Hash the date of birth to use as a temporary password
+      // Ensure dob is a string before processing
+      let newDob;
+      if (typeof dob === 'string') {
+        newDob = dob.split("-").reverse().join("-");
+      } else {
+        // Handle the error appropriately, e.g., return a response
+        return res.status(400).json({ error: "Invalid date of birth format" });
+      }
+      if (!newDob || typeof newDob !== 'string') {
+        return res.status(400).json({ message: "Invalid date of birth format" });
+      }
+
+      console.log("DOB before hashing:", newDob);
+
+      try {
+        hashedPassword = await bcrypt.hash(newDob, 10);
+      } catch (hashError) {
+        return res.status(500).json({ message: "Error hashing the password" });
+      }
+      
       var passwordUpdated = false;
 
       // Create new faculty record
@@ -611,11 +632,17 @@ export const getAdmin = async (req, res) => {
 export const deleteAdmin = async (req, res) => {
   try {
     const admins = req.body;
+    if (!Array.isArray(admins) || admins.length === 0 || admins.length > 100) {
+      return res.status(400).json({ message: "Invalid request: admins must be an array with at most 100 items." });
+    }
     let csrfToken = req.csrfToken(); // Generate CSRF token outside the loop
     const errors = { noAdminError: String };
     for (var i = 0; i < admins.length; i++) {
       var admin = admins[i];
-
+      // Ensure that each adminId is a valid MongoDB ObjectId format
+      if (!mongoose.Types.ObjectId.isValid(admin)) {
+        return res.status(400).json({ message: `Invalid admin ID: ${admin}` });
+      }
       await Admin.findOneAndDelete({ _id: admin });
      
     }
@@ -631,10 +658,17 @@ export const deleteAdmin = async (req, res) => {
 export const deleteFaculty = async (req, res) => {
   try {
     const faculties = req.body;
+     // Validate that req.body is an array and has a reasonable length
+     if (!Array.isArray(faculties) || faculties.length === 0 || faculties.length > 100) {
+      return res.status(400).json({ message: "Invalid request: faculties must be an array with at most 100 items." });
+    }
     const errors = { noFacultyError: String };
     for (var i = 0; i < faculties.length; i++) {
       var faculty = faculties[i];
-
+    // Ensure that each facultyId is a valid MongoDB ObjectId format
+    if (!mongoose.Types.ObjectId.isValid(faculty)) {
+      return res.status(400).json({ message: `Invalid faculty ID: ${faculty}` });
+    }
       await Faculty.findOneAndDelete({ _id: faculty });
     }
     const csrfToken = req.csrfToken(); // Generate CSRF token
@@ -648,11 +682,18 @@ export const deleteFaculty = async (req, res) => {
 export const deleteStudent = async (req, res) => {
   try {
     const students = req.body;
+    // Validate that req.body is an array and its length is reasonable
+    if (!Array.isArray(students) || students.length === 0 || students.length > 100) {
+      return res.status(400).json({ message: "Invalid request: students must be an array with at most 100 items." });
+    }
     const csrfToken = req.csrfToken(); // Generate CSRF token
     const errors = { noStudentError: String };
     for (var i = 0; i < students.length; i++) {
       var student = students[i];
-
+    // Validate each studentId to ensure it's a valid MongoDB ObjectId
+    if (!mongoose.Types.ObjectId.isValid(student)) {
+      return res.status(400).json({ message: `Invalid student ID: ${student}` });
+    }
       await Student.findOneAndDelete({ _id: student });
     }
     res.status(200).json({ message: "Student Deleted",csrfToken });
@@ -665,11 +706,18 @@ export const deleteStudent = async (req, res) => {
 export const deleteSubject = async (req, res) => {
   try {
     const subjects = req.body;
+    // Validate that req.body is an array and its length is reasonable
+    if (!Array.isArray(subjects) || subjects.length === 0 || subjects.length > 100) {
+      return res.status(400).json({ message: "Invalid request: subjects must be an array with at most 100 items." });
+    }
     const csrfToken = req.csrfToken(); // Generate CSRF token
     const errors = { noSubjectError: String };
     for (var i = 0; i < subjects.length; i++) {
       var subject = subjects[i];
-
+    // Validate each subjectId to ensure it's a valid MongoDB ObjectId
+    if (!mongoose.Types.ObjectId.isValid(subject)) {
+      return res.status(400).json({ message: `Invalid subject ID: ${subject}` });
+    }
       await Subject.findOneAndDelete({ _id: subject });
     }
     res.status(200).json({ message: "Subject Deleted",csrfToken });
@@ -738,6 +786,7 @@ export const addStudent = [
         year,
       } = req.body;
 
+      console.log(`Processed DOB In`);
       const existingStudent = await Student.findOne({ email }).select('-password');
       if (existingStudent) {
         return res.status(400).json({ emailError: "Email already exists" });
@@ -760,12 +809,21 @@ export const addStudent = [
       }
 
       const date = new Date();
-      const components  = ["STU", date.getFullYear(), departmentHelper, helper];
-      
-      // Hash the password
-      var username = components.join("");
+      const components = ["STU", date.getFullYear(), departmentHelper, helper];
+      const username = components.join("");
+
+      // Ensure dob is a string before processing
+      let newDob;
+      if (typeof dob === 'string') {
+        console.log(`Processed DOB: ${newDob}`);
+        newDob = dob.split("-").reverse().join("-");
+      } else {
+        console.log(`Not Processed DOB`);
+        // Handle the error appropriately, e.g., return a response
+        return res.status(400).json({ error: "Invalid date of birth format" });
+      }
+
       let hashedPassword;
-      const newDob = dob.split("-").reverse().join("-");
       try {
         hashedPassword = await bcrypt.hash(newDob, 10);
       } catch (hashError) {

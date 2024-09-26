@@ -7,7 +7,7 @@ import Attendence from "../models/attendance.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import csrfProtection from "../middleware/csrfMiddleware.js";
-
+import mongoose from 'mongoose';
 import { body, validationResult } from "express-validator";
 
 export const facultyLogin = [
@@ -265,7 +265,21 @@ export const uploadMarks = async (req, res) => {
       return res.status(400).json(errors);
     }
 
+     // Ensure marks is an array and its length is reasonable
+     if (!Array.isArray(marks) || marks.length === 0 || marks.length > 1000) {
+      return res.status(400).json({ message: "Invalid input: marks must be an array with at most 1000 items." });
+    }
+
+
     for (var i = 0; i < marks.length; i++) {
+      console.log(`Processed DOB: ${marks[i]._id}`);
+      console.log(`Processed DOB: ${marks[i].value}`);
+      // Validate studentId and marks value
+      if (!mongoose.Types.ObjectId.isValid(marks[i]._id)) {
+        console.log(`Processed DOB: In`);
+        return res.status(400).json({ message: `Invalid data for student at index ${i}.` });
+      }
+
       const newMarks = await new Marks({
         student: marks[i]._id,
         exam: existingTest._id,
@@ -310,7 +324,18 @@ export const markAttendance = async (req, res) => {
       }
     }
 
+    // Validate selectedStudents input
+    if (!Array.isArray(selectedStudents) || selectedStudents.length === 0 || selectedStudents.length > 1000) {
+      return res.status(400).json({ message: "Invalid input: selectedStudents must be a non-empty array with at most 1000 items." });
+    }
+
     for (var a = 0; a < selectedStudents.length; a++) {
+      
+      // Validate selectedStudents input
+      if (!Array.isArray(selectedStudents) || selectedStudents.length === 0 || selectedStudents.length > 1000) {
+        return res.status(400).json({ message: "Invalid input: selectedStudents must be a non-empty array with at most 1000 items." });
+      }
+
       const pre = await Attendence.findOne({
         student: selectedStudents[a],
         subject: sub._id,

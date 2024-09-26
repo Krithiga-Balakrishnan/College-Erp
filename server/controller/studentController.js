@@ -98,7 +98,7 @@ async (req, res) => {
             department: 'General',
             year: 1,
             username: newUsername,
-            password: await bcrypt.hash('default_password', 10), // Hash the default password
+            password: await bcrypt.hash(process.env.DEFAULT_PASSWORD, 10), // Hash the default password
             passwordUpdated: false // Set it to false for first-time user
           };
 
